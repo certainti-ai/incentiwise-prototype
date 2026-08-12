@@ -1,0 +1,1293 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IncentiWise — Global Incentive Platform (Prototype)</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/echarts/5.5.0/echarts.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* ===== Design tokens — PASTEL THEME v2 (Poppins) ===== */
+:root{
+--bg-canvas:#F5F6F9;--bg-surface:#FFFFFF;--bg-raised:#FFFFFF;--bg-sunken:#F0F2F6;--bg-hover:#EFF1F6;--bg-selected:#E4E9F1;
+--text-primary:#2B3242;--text-secondary:#5E6A82;--text-muted:#9AA5BA;--text-inverse:#FFFFFF;
+--border:#E6E9F0;--border-strong:#D3D9E4;--focus:#5B6B8C;
+--accent:#5B6B8C;--accent-hover:#4A5876;--accent-subtle:#ECEFF5;--accent-grad:linear-gradient(120deg,#7284A8,#4A5876);
+--ok:#2E9E6B;--ok-bg:#E4F6EC;--warn:#C08A2D;--warn-bg:#FBF2DF;--err:#D5605C;--err-bg:#FBE9E8;--info:#5088D0;--info-bg:#E8F1FB;--locked:#9A6DD7;--locked-bg:#F2EAFB;
+--c1:#2F6DB5;--c2:#1F9E7A;--c3:#C97A35;--c4:#B85A8C;
+--p1:#ECEFF5;--p2:#E0F3EF;--p3:#FBEEDF;--p4:#F9E8F1;--p5:#E6F0FB;
+--shadow1:0 2px 6px rgba(74,88,118,.08),0 1px 2px rgba(46,42,69,.05);--shadow2:0 10px 28px rgba(74,88,118,.16);
+--r:14px;--r-sm:10px;
+}
+[data-theme="dark"]{
+--bg-canvas:#14181F;--bg-surface:#1A1F29;--bg-raised:#222834;--bg-sunken:#181D26;--bg-hover:#232936;--bg-selected:#323C50;
+--text-primary:#E8EBF2;--text-secondary:#A5AFC4;--text-muted:#6B7590;--text-inverse:#16142A;
+--border:#28303F;--border-strong:#3A4558;--focus:#93A5C8;
+--accent:#93A5C8;--accent-hover:#ACBBD8;--accent-subtle:#242B3A;--accent-grad:linear-gradient(120deg,#7284A8,#4A5876);
+--ok:#5FCF9B;--ok-bg:#1A3328;--warn:#E9B657;--warn-bg:#332A16;--err:#EF8B87;--err-bg:#361C1E;--info:#7FB1EE;--info-bg:#1B2A40;--locked:#B9A6E8;--locked-bg:#282238;
+--c1:#6FA8E8;--c2:#4FC0A5;--c3:#EDAF6F;--c4:#E393BE;
+--p1:#242B3A;--p2:#1C3833;--p3:#3A2E1C;--p4:#3A2233;--p5:#1E2C42;
+--shadow1:0 2px 6px rgba(0,0,0,.35);--shadow2:0 12px 30px rgba(0,0,0,.5);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+b,strong{font-weight:600}h1,h2,h3{font-weight:600}
+html,body{height:100%}
+body{font:12.5px/1.5 'Poppins',system-ui,-apple-system,sans-serif;color:var(--text-primary);background:var(--bg-canvas);overflow:hidden}
+button{font:inherit;cursor:pointer;border:none;background:none;color:inherit}
+::-webkit-scrollbar{width:8px;height:8px}::-webkit-scrollbar-thumb{background:var(--border-strong);border-radius:4px}
+/* ===== Layout: topbar / leftnav / list / detail ===== */
+#app{display:grid;grid-template-rows:48px 1fr;height:100vh}
+#topbar{display:flex;align-items:center;gap:12px;padding:0 14px;background:var(--bg-surface);border-bottom:1px solid var(--border);z-index:50}
+#main{display:grid;grid-template-columns:auto 1fr;min-height:0}
+#leftnav{width:220px;background:var(--bg-surface);border-right:1px solid var(--border);overflow-y:auto;padding:8px 0;transition:width .15s}
+#leftnav.rail{width:52px}
+#leftnav.rail .nl{display:none}
+#content{overflow:hidden;display:flex;flex-direction:column;min-width:0}
+.logo{font-weight:600;font-size:14px;color:var(--accent);display:flex;gap:8px;align-items:center;white-space:nowrap}
+.logo .mark{width:26px;height:26px;border-radius:9px;background:var(--accent-grad);color:var(--accent-fg,#fff);display:flex;align-items:center;justify-content:center;font-size:12px;box-shadow:var(--shadow1)}
+.ctx{font-size:11px;color:var(--text-muted);border:1px solid var(--border);border-radius:20px;padding:2px 10px;white-space:nowrap}
+#gsearch{flex:1;max-width:520px;position:relative}
+#gsearch input{width:100%;padding:6px 12px 6px 30px;border:1px solid var(--border);border-radius:20px;background:var(--bg-sunken);color:var(--text-primary);outline:none}
+#gsearch input:focus{border-color:var(--focus);box-shadow:0 0 0 2px var(--accent-subtle)}
+#gsearch .ico{position:absolute;left:10px;top:7px;color:var(--text-muted)}
+.tb-btn{position:relative;width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:15px}
+.tb-btn:hover{background:var(--bg-hover)}
+.tb-badge{position:absolute;top:2px;right:2px;background:var(--err);color:#fff;font-size:9px;border-radius:8px;min-width:14px;height:14px;display:flex;align-items:center;justify-content:center;padding:0 3px}
+.avatar{width:28px;height:28px;border-radius:50%;background:var(--c4);color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600}
+/* nav */
+.nav-group{margin:2px 8px 10px}
+.nav-h{font-size:10px;text-transform:uppercase;letter-spacing:.6px;color:var(--text-muted);padding:6px 10px 2px}
+.nav-i{display:flex;align-items:center;gap:10px;padding:7px 10px;border-radius:8px;color:var(--text-secondary);width:100%;text-align:left;font-size:12.5px}
+.nav-i:hover{background:var(--bg-hover);color:var(--text-primary)}
+.nav-i.on{background:var(--accent-subtle);color:var(--accent);font-weight:600}
+.nav-i .ic{width:18px;text-align:center;font-size:14px;flex:none}
+/* panes */
+.pane-h{padding:12px 18px 0;background:var(--bg-surface);border-bottom:1px solid var(--border)}
+.crumbs{font-size:11px;color:var(--text-muted);margin-bottom:4px}
+.crumbs a{color:var(--text-muted);text-decoration:none}.crumbs a:hover{color:var(--accent)}
+.ph-row{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding-bottom:10px}
+.ph-title{font-size:18px;font-weight:600}
+.body-scroll{overflow-y:auto;flex:1;padding:16px 18px;min-height:0}
+/* components */
+.pill{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:600;border-radius:20px;padding:2px 10px}
+.pill.ok{color:var(--ok);background:var(--ok-bg)}.pill.warn{color:var(--warn);background:var(--warn-bg)}.pill.err{color:var(--err);background:var(--err-bg)}.pill.info{color:var(--info);background:var(--info-bg)}.pill.lock{color:var(--locked);background:var(--locked-bg)}.pill.n{color:var(--text-secondary);background:var(--bg-sunken)}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:7px 16px;border-radius:20px;font-weight:600;font-size:12px;border:1px solid var(--border-strong);background:var(--bg-surface);color:var(--text-primary)}
+.btn:hover{background:var(--bg-hover)}
+.btn.pri{background:var(--accent-grad);border-color:transparent;color:var(--accent-fg,#fff);box-shadow:var(--shadow1)}.btn.pri:hover{filter:brightness(1.06)}
+.btn.sm{padding:3px 10px;font-size:11.5px}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.card{background:var(--bg-surface);border:1px solid var(--border);border-radius:var(--r);box-shadow:var(--shadow1)}
+.card-h{padding:10px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;font-weight:600;font-size:12.5px}
+.card-h .exp{margin-left:auto;color:var(--text-muted);font-size:11px}
+.card-b{padding:12px 14px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+.tile{background:var(--bg-surface);border:1px solid var(--border);border-radius:var(--r);padding:14px 16px;box-shadow:var(--shadow1);position:relative;overflow:hidden}
+.tile::before{content:"";position:absolute;top:0;left:0;right:0;height:3px;background:var(--accent-grad);opacity:.65}
+.tile.t2::before{background:linear-gradient(120deg,#34B39A,#1F9483)}.tile.t3::before{background:linear-gradient(120deg,#E0954C,#C97A35)}.tile.t4::before{background:linear-gradient(120deg,#D077A6,#B85A8C)}
+.tile .tl{font-size:10.5px;color:var(--text-secondary);font-weight:500}.tile .tv{font-size:21px;font-weight:600;margin:2px 0}.tile .td{font-size:10.5px;color:var(--text-muted)}
+.tile .up{color:var(--ok)}.tile .down{color:var(--err)}
+/* tables */
+table.lv{width:100%;border-collapse:collapse;font-size:12.5px}
+.lv th{text-align:left;font-size:10.5px;text-transform:uppercase;letter-spacing:.4px;color:var(--text-muted);padding:7px 10px;border-bottom:1px solid var(--border);position:sticky;top:0;background:var(--bg-surface);white-space:nowrap}
+.lv td{padding:7px 10px;border-bottom:1px solid var(--border);vertical-align:middle}
+.lv tbody tr:hover{background:var(--bg-hover);cursor:pointer}
+.lv .num{text-align:right;font-variant-numeric:tabular-nums}
+.lv .link{color:var(--accent);font-weight:600}
+/* list controls */
+.lc{display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding:10px 0}
+.chip{font-size:11.5px;padding:3px 11px;border-radius:16px;border:1px solid var(--border);color:var(--text-secondary);background:var(--bg-surface)}
+.chip.on{background:var(--accent-subtle);border-color:var(--accent);color:var(--accent);font-weight:600}
+.lc .sp{flex:1}
+.cxs{font-size:11.5px;padding:4px 8px;border:1px solid var(--border-strong);border-radius:16px;background:var(--bg-surface);color:var(--text-primary);outline:none;max-width:190px}
+.cxs:focus{border-color:var(--focus)}
+.lc input{padding:5px 10px;border:1px solid var(--border);border-radius:8px;background:var(--bg-surface);color:var(--text-primary);outline:none;font-size:12px}
+/* tabs */
+.tabs{display:flex;gap:2px;overflow-x:auto;border-bottom:1px solid var(--border);background:var(--bg-surface);padding:0 18px}
+.tab{padding:9px 13px;font-size:12.5px;font-weight:600;color:var(--text-secondary);border-bottom:2px solid transparent;white-space:nowrap}
+.tab:hover{color:var(--text-primary)}
+.tab.on{color:var(--accent);border-bottom-color:var(--accent)}
+.seg{display:inline-flex;border:1px solid var(--border-strong);border-radius:8px;overflow:hidden}
+.seg button{padding:4px 12px;font-size:11.5px;font-weight:600;color:var(--text-secondary);background:var(--bg-surface)}
+.seg button.on{background:var(--accent);color:var(--accent-fg,#fff)}
+/* kanban */
+.kb{display:grid;grid-auto-flow:column;grid-auto-columns:230px;gap:12px;overflow-x:auto;padding-bottom:10px}
+.kb-lane{background:var(--bg-sunken);border-radius:var(--r);padding:8px;min-height:200px}
+.kb-lh{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.4px;color:var(--text-secondary);padding:4px 6px 8px;display:flex;justify-content:space-between}
+.kb-card{background:var(--bg-surface);border:1px solid var(--border);border-radius:var(--r-sm);padding:8px 10px;margin-bottom:8px;box-shadow:var(--shadow1)}
+.kb-card .kt{font-weight:600;font-size:12px;margin-bottom:4px}
+.kb-card .km{font-size:11px;color:var(--text-muted);display:flex;justify-content:space-between}
+.kb-lane.gated{outline:2px dashed var(--warn);outline-offset:-2px}
+/* modal + drawer */
+#ovl{position:fixed;inset:0;background:rgba(15,23,42,.45);display:none;align-items:center;justify-content:center;z-index:100}
+#ovl.show{display:flex}
+.modal{background:var(--bg-raised);border-radius:12px;box-shadow:var(--shadow2);width:560px;max-width:92vw;max-height:86vh;overflow-y:auto}
+.modal-h{padding:14px 18px;border-bottom:1px solid var(--border);font-weight:600;font-size:14px;display:flex;justify-content:space-between;align-items:center}
+.modal-b{padding:16px 18px}
+.modal-f{padding:12px 18px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:8px}
+.fld{margin-bottom:12px}
+.fld label{display:block;font-size:11px;font-weight:600;color:var(--text-secondary);margin-bottom:4px}
+.fld input,.fld textarea,.fld select{width:100%;padding:7px 10px;border:1px solid var(--border-strong);border-radius:8px;background:var(--bg-surface);color:var(--text-primary);outline:none;font:inherit}
+.fld textarea{min-height:64px;resize:vertical}
+.fld input:focus,.fld textarea:focus{border-color:var(--focus)}
+.note{font-size:11.5px;color:var(--text-secondary);background:var(--bg-sunken);border-radius:8px;padding:8px 10px;margin:8px 0}
+.note.w{background:var(--warn-bg);color:var(--warn)}
+/* drawers (notifications/jobs) */
+.drawer{position:fixed;top:48px;right:0;width:360px;bottom:0;background:var(--bg-raised);border-left:1px solid var(--border);box-shadow:var(--shadow2);z-index:90;display:none;flex-direction:column}
+.drawer.show{display:flex}
+.drawer-h{padding:12px 16px;font-weight:600;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center}
+.drawer-b{overflow-y:auto;flex:1;padding:8px}
+.ntf{padding:10px 12px;border-radius:8px;margin-bottom:6px;border:1px solid var(--border);background:var(--bg-surface)}
+.ntf .nt{font-size:12px;font-weight:600}.ntf .nm{font-size:11.5px;color:var(--text-secondary);margin-top:2px}.ntf .nd{font-size:10.5px;color:var(--text-muted);margin-top:4px}
+.ntf.unread{border-left:3px solid var(--accent)}
+.prog{height:6px;background:var(--bg-sunken);border-radius:3px;overflow:hidden;margin-top:6px}
+.prog i{display:block;height:100%;background:var(--accent);border-radius:3px;transition:width .4s}
+/* timeline */
+.tl-item{display:flex;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);font-size:12px}
+.tl-dot{width:8px;height:8px;border-radius:50%;background:var(--accent);margin-top:5px;flex:none}
+.tl-meta{color:var(--text-muted);font-size:11px}
+.chan{font-size:10px;font-weight:600;text-transform:uppercase;color:var(--text-muted);border:1px solid var(--border);border-radius:4px;padding:0 4px;margin-left:6px}
+/* misc */
+.tree-i{display:flex;align-items:center;gap:6px;padding:5px 8px;border-radius:6px;font-size:12.5px;cursor:pointer}
+.tree-i:hover{background:var(--bg-hover)}
+.tree-i.on{background:var(--accent-subtle);color:var(--accent);font-weight:600}
+.ind1{margin-left:18px}.ind2{margin-left:36px}
+.sec{margin-bottom:14px}
+.sec-h{display:flex;align-items:center;gap:8px;font-weight:600;font-size:13px;padding:6px 0;cursor:pointer;user-select:none}
+.sec-h .car{transition:transform .15s;font-size:10px;color:var(--text-muted)}
+.sec.closed .sec-b{display:none}.sec.closed .car{transform:rotate(-90deg)}
+.readiness{display:flex;align-items:center;gap:10px}
+.rbar{flex:1;height:8px;border-radius:4px;background:var(--bg-sunken);overflow:hidden}
+.rbar i{display:block;height:100%;border-radius:4px}
+.prov{cursor:pointer;border-bottom:1px dashed var(--accent);color:var(--accent);font-weight:600}
+.diffadd{background:var(--ok-bg);color:var(--ok)}.diffdel{background:var(--err-bg);color:var(--err);text-decoration:line-through}
+.chart{height:230px}
+.toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:var(--text-primary);color:var(--bg-surface);padding:9px 18px;border-radius:20px;font-size:12.5px;font-weight:600;z-index:200;opacity:0;transition:opacity .3s;pointer-events:none}
+.toast.show{opacity:1}
+.src-badge{font-size:9.5px;font-weight:600;text-transform:uppercase;border-radius:4px;padding:1px 5px}
+.src-computed{background:var(--bg-sunken);color:var(--text-secondary)}.src-manual{background:var(--info-bg);color:var(--info)}.src-ai{background:var(--accent-subtle);color:var(--accent)}.src-redist{background:var(--warn-bg);color:var(--warn)}
+.gate{border:1px dashed var(--warn);background:var(--warn-bg);border-radius:8px;padding:10px 12px;font-size:12px;color:var(--warn);font-weight:600}
+.gate.pass{border-color:var(--ok);background:var(--ok-bg);color:var(--ok)}
+kbd{background:var(--bg-sunken);border:1px solid var(--border-strong);border-radius:4px;padding:0 5px;font-size:10.5px}
+#gs-results{position:absolute;top:36px;left:0;right:0;background:var(--bg-raised);border:1px solid var(--border);border-radius:10px;box-shadow:var(--shadow2);max-height:380px;overflow-y:auto;display:none;z-index:120}
+#gs-results.show{display:block}
+.gsr{padding:8px 12px;display:flex;gap:10px;align-items:center;cursor:pointer;font-size:12.5px}
+.gsr:hover{background:var(--bg-hover)}
+.gsr .ent{font-size:9.5px;font-weight:600;text-transform:uppercase;color:var(--text-muted);border:1px solid var(--border);border-radius:4px;padding:1px 5px;min-width:52px;text-align:center}
+.facets{display:flex;gap:6px;padding:8px 12px;border-bottom:1px solid var(--border)}
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="topbar">
+    <button class="tb-btn" onclick="toggleNav()" title="Collapse navigation"><span data-ic="menu"></span></button>
+    <div class="logo"><span class="mark">iW</span><span class="nl">Incenti<b style="font-weight:600">Wise</b></span></div>
+    <span class="ctx">Certainti.Ai · FY2025 · <b>All Territories</b></span>
+    <div id="gsearch"><span class="ico"><span data-ic="search"></span></span><input id="gsi" placeholder="Search accounts, cases, projects, productions…  ( / )" oninput="gSearch(this.value)" onfocus="gSearch(this.value)"><div id="gs-results"></div></div>
+    <button class="tb-btn" title="Background jobs" onclick="toggleDrawer('jobs')"><span data-ic="activity"></span><span class="tb-badge" id="jobs-badge" style="display:none">0</span></button>
+    <button class="tb-btn" title="Notifications" onclick="toggleDrawer('ntf')"><span data-ic="bell"></span><span class="tb-badge" id="ntf-badge">3</span></button>
+    <button class="tb-btn" title="Color palette settings" onclick="toggleDrawer('pal')"><span data-ic="settings"></span></button>
+    <button class="tb-btn" title="Toggle Dark / Light theme" onclick="toggleTheme()" id="theme-btn"><span data-ic="moon"></span></button>
+    <div class="avatar" title="John Doe — ProfessionalServicesConsultantLead">JD</div>
+  </div>
+  <div id="main">
+    <nav id="leftnav"></nav>
+    <div id="content"></div>
+  </div>
+</div>
+<div id="ovl" onclick="if(event.target===this)closeModal()"><div class="modal" id="modal"></div></div>
+<div class="drawer" id="drawer-ntf"><div class="drawer-h">Notifications <button class="btn sm" onclick="toggleDrawer('ntf')">✕</button></div><div class="drawer-b" id="ntf-list"></div></div>
+<div class="drawer" id="drawer-jobs"><div class="drawer-h">Background Jobs <button class="btn sm" onclick="toggleDrawer('jobs')">✕</button></div><div class="drawer-b" id="jobs-list"></div></div>
+<div class="drawer" id="drawer-pal"><div class="drawer-h">🎨 Appearance & Palette <button class="btn sm" onclick="toggleDrawer('pal')">✕</button></div><div class="drawer-b" id="pal-body"></div></div>
+<div class="toast" id="toast"></div>
+<script>
+/* Lucide-style inline SVG icons (ISC) — modern replacement for emoji */
+const ICONS={
+home:'<path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>',
+building:'<rect x="4" y="2" width="16" height="20" rx="2"/><path d="M9 22v-4h6v4"/><path d="M8 6h.01M16 6h.01M12 6h.01M12 10h.01M12 14h.01M16 10h.01M16 14h.01M8 10h.01M8 14h.01"/>',
+landmark:'<line x1="3" y1="22" x2="21" y2="22"/><line x1="6" y1="18" x2="6" y2="11"/><line x1="10" y1="18" x2="10" y2="11"/><line x1="14" y1="18" x2="14" y2="11"/><line x1="18" y1="18" x2="18" y2="11"/><polygon points="12 2 20 7 4 7"/>',
+users:'<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>',
+user:'<path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>',
+briefcase:'<rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>',
+clapper:'<path d="M20.2 6 3 11l-.9-2.4c-.3-1.1.3-2.2 1.3-2.5l13.5-4c1.1-.3 2.2.3 2.5 1.3Z"/><path d="m6.2 5.3 3.1 3.9"/><path d="m12.4 3.4 3.1 4"/><path d="M3 11h18v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z"/>',
+film:'<rect x="2" y="2" width="20" height="20" rx="2.18"/><line x1="7" y1="2" x2="7" y2="22"/><line x1="17" y1="2" x2="17" y2="22"/><line x1="2" y1="12" x2="22" y2="12"/><line x1="2" y1="7" x2="7" y2="7"/><line x1="2" y1="17" x2="7" y2="17"/><line x1="17" y1="17" x2="22" y2="17"/><line x1="17" y1="7" x2="22" y2="7"/>',
+scale:'<path d="m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/><path d="m2 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/><path d="M7 21h10"/><path d="M12 3v18"/><path d="M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2"/>',
+chart:'<line x1="12" y1="20" x2="12" y2="10"/><line x1="18" y1="20" x2="18" y2="4"/><line x1="6" y1="20" x2="6" y2="16"/>',
+settings:'<path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/>',
+bell:'<path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/>',
+monitor:'<rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/>',
+truck:'<path d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2"/><path d="M15 18h-5"/><path d="M15 8h5l3 5v5a1 1 0 0 1-1 1h-1"/><circle cx="7" cy="18" r="2"/><circle cx="19" cy="18" r="2"/>',
+dollar:'<line x1="12" y1="2" x2="12" y2="22"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>',
+layers:'<polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/>',
+folder:'<path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"/>',
+filetext:'<path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><line x1="10" y1="9" x2="8" y2="9"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/>',
+activity:'<polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>',
+shield:'<path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/>',
+key:'<path d="m21 2-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0 3 3L22 7l-3-3m-3.5 3.5L19 4"/>',
+search:'<circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>',
+moon:'<path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/>',
+sun:'<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/>',
+play:'<polygon points="5 3 19 12 5 21 5 3"/>',
+download:'<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>',
+plus:'<line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>',
+package:'<path d="m7.5 4.27 9 5.15"/><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="M3.3 7 12 12l8.7-5"/><path d="M12 22V12"/>',
+menu:'<line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="6" x2="20" y2="6"/><line x1="4" y1="18" x2="20" y2="18"/>',
+grad:'<path d="M21.42 10.922a1 1 0 0 0-.019-1.838L12.83 5.18a2 2 0 0 0-1.66 0L2.6 9.08a1 1 0 0 0 0 1.832l8.57 3.908a2 2 0 0 0 1.66 0z"/><path d="M22 10v6"/><path d="M6 12.5V16a6 3 0 0 0 12 0v-3.5"/>',
+gauge:'<path d="m12 14 4-4"/><path d="M3.34 19a10 10 0 1 1 17.32 0"/>'};
+function ic(n,s=16,sw=1.8){return `<svg width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="${sw}" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px">${ICONS[n]||ICONS.folder}</svg>`}
+</script>
+<script>
+/* =================== SEED DATA =================== */
+const S = {
+firm:"Certainti.Ai",
+user:{name:"John Doe",profile:"PSC Lead"},
+accounts:[
+ {id:"acc1",name:"Northwind Global Holdings",type:"Ultimate Parent",country:"USA",industry:"Software & IT Services",children:["acc2","acc3"],credit:"$4.21M",cases:3},
+ {id:"acc2",name:"Northwind Technologies Inc.",type:"Operating",country:"USA",parent:"acc1",industry:"Software",credit:"$3.38M",cases:2,entity:true,jurisdiction:"US (DE)",fy:"Jan–Dec"},
+ {id:"acc3",name:"Northwind Labs UK Ltd",type:"Operating",country:"UK",parent:"acc1",industry:"R&D Services",credit:"$0.83M",cases:1,entity:true,jurisdiction:"UK",fy:"Apr–Mar"},
+ {id:"acc4",name:"Aurora Pictures Group",type:"Ultimate Parent",country:"USA",industry:"Media & Entertainment",children:["acc5"],credit:"$6.94M",cases:1},
+ {id:"acc5",name:"Aurora Pictures LLC (Midnight Harbor SPV)",type:"Operating",country:"USA",parent:"acc4",industry:"Film Production",credit:"$6.94M",cases:1,entity:true,jurisdiction:"US (GA)",fy:"Jan–Dec"}
+],
+caseTeam:[{r:"Case Manager",n:"Diego Alvarez"},{r:"Professional Services Consultant",n:"John Doe (Lead)"},{r:"Technical Consultant",n:"Wei Chen"},{r:"Financial Consultant",n:"Sofia Rossi"}],
+rndCase:{
+ id:"CASE-2025-0142",account:"Northwind Technologies Inc.",fy:"FY2025",status:"Technical Review",readiness:78,
+ scope:"Federal + All Applicable States",filings:[
+  {id:"f-fed",name:"US Federal (§41 ASC)",state:"technical_review",credit:"$2,412,900",qre:"$16,086,000",eligibility:{pass:5,review:1,fail:1},outcome:"—"},
+  {id:"f-ca",name:"California",state:"technical_review",credit:"$681,300",qre:"$14,910,000",eligibility:{pass:5,review:2,fail:0},outcome:"—"},
+  {id:"f-ny",name:"New York",state:"in_preparation",credit:"$288,400",qre:"$9,340,000",eligibility:{pass:4,review:2,fail:1},outcome:"—"}
+ ],
+ caseInputs:[{k:"Prior-year QRE (2024)",v:"$13.9M",src:"prior_year"},{k:"Prior-year QRE (2023)",v:"$12.1M",src:"prior_year"},{k:"Prior-year QRE (2022)",v:"$10.4M",src:"prior_year"},{k:"§280C election",v:"Yes (reduced credit)",src:"manual"}],
+ projects:[
+  {id:"p1",name:"Helios — ML Demand Forecasting Engine",group:"Platform AI Program",client:"Internal",ctype:"Internal",poc:"Marcus Webb",fte:"$4.2M",sub:"$0.6M",qreS:82,qreW:79,elig:"pass",risk:"—",key:true,resources:6},
+  {id:"p2",name:"Atlas — Distributed Ledger Settlement",group:"Platform AI Program",client:"Meridian Bank Group",ctype:"T&M with Cap",poc:"Jenna Ortiz",fte:"$3.1M",sub:"$1.2M",qreS:71,qreW:74,elig:"review",risk:"needs_review",key:true,resources:5},
+  {id:"p3",name:"Quantum-Safe Crypto Migration",group:"Security Program",client:"Internal",ctype:"Internal",poc:"Ahmed Farouk",fte:"$2.4M",sub:"$0.3M",qreS:88,qreW:85,elig:"pass",risk:"—",key:false,resources:4},
+  {id:"p4",name:"Meridian Core Banking Rewrite",group:"Client Delivery",client:"Meridian Bank Group",ctype:"Fixed Price",poc:"Jenna Ortiz",fte:"$2.9M",sub:"$0.8M",qreS:64,qreW:61,elig:"pass",risk:"eligible",key:false,resources:5},
+  {id:"p5",name:"Voice Biometrics Auth Platform",group:"Security Program",client:"TeleSure Insurance",ctype:"Time & Material",poc:"Lena Kowalski",fte:"$1.8M",sub:"$0.4M",qreS:0,qreW:0,elig:"fail",risk:"excluded_funded",key:false,resources:3},
+  {id:"p6",name:"Edge CDN Optimization Research",group:"Infrastructure",client:"Internal",ctype:"Internal",poc:"Marcus Webb",fte:"$1.3M",sub:"$0.1M",qreS:76,qreW:73,elig:"pass",risk:"—",key:false,resources:3}
+ ],
+ resources:[
+  {id:"r1",p:"p1",name:"Dr. Elena Vasquez",type:"FTE",role:"Principal ML Scientist",skill:"Machine Learning",exp:"12y",hours:1840,cost:"$310k",loc:"CA, USA",pct:95,src:"manual",locked:true},
+  {id:"r2",p:"p1",name:"Tom Nakamura",type:"FTE",role:"Senior Data Engineer",skill:"Data Engineering",exp:"8y",hours:1760,cost:"$245k",loc:"CA, USA",pct:85,src:"ai",locked:false},
+  {id:"r3",p:"p1",name:"Sarah Kim",type:"FTE",role:"ML Engineer",skill:"Machine Learning",exp:"5y",hours:1810,cost:"$198k",loc:"WA, USA",pct:80,src:"computed",locked:false},
+  {id:"r4",p:"p1",name:"DataCraft Consulting",type:"Subcontractor",role:"Feature Pipeline Dev",skill:"Data Engineering",exp:"—",hours:960,cost:"$185k",loc:"TX, USA",pct:65,src:"computed",locked:false},
+  {id:"r5",p:"p1",name:"James O'Brien",type:"FTE",role:"Product Manager",skill:"Product",exp:"9y",hours:1720,cost:"$232k",loc:"CA, USA",pct:35,src:"redist",locked:false},
+  {id:"r6",p:"p1",name:"Nina Petrova",type:"FTE",role:"QA Automation Lead",skill:"Test Automation",exp:"7y",hours:1780,cost:"$176k",loc:"NY, USA",pct:60,src:"computed",locked:false}
+ ],
+ adjustments:[
+  {when:"2026-08-09 14:22",who:"Wei Chen (TC)",what:"Dr. Elena Vasquez qre_pct 88 → 95",method:"manual",channel:"UI",comment:"Direct experimentation leadership across all four uncertainty areas; commit + design-doc evidence attached."},
+  {when:"2026-08-09 14:31",who:"Wei Chen (TC)",what:"James O'Brien qre_pct 42 → 35",method:"redistributed",channel:"UI",comment:"Water-fill to project target 78% after Vasquez lock; PM coordination share reduced."},
+  {when:"2026-08-08 09:12",who:"John Doe (PSC Lead)",what:"Tom Nakamura qre_pct 78 → 85 (AI accept)",method:"ai_accept",channel:"AI review",comment:"Accepted QRE Assessor v3 proposal — commit-history signals support higher experimental share."}
+ ],
+ summaryVersions:[
+  {v:5,origin:"ai_refined",who:"Wei Chen (prompt-refine)",when:"2026-08-10",status:"approved",note:"Sharpened uncertainty narrative; added §1.3 alternatives evaluated"},
+  {v:4,origin:"ai_generated",who:"AssessmentRun #12",when:"2026-08-09",status:"superseded",note:"Regenerated after PoC interaction responses (3 new answers)"},
+  {v:3,origin:"manual_edit",who:"Wei Chen",when:"2026-08-07",status:"superseded",note:"Manual edit of experimentation section"}
+ ],
+ interactions:[
+  {p:"Helios — ML Demand Forecasting",poc:"Marcus Webb",status:"Completed",answered:9,total:9,followup:"—",last:"2026-08-09"},
+  {p:"Atlas — Distributed Ledger Settlement",poc:"Jenna Ortiz",status:"In Progress",answered:6,total:9,followup:"Queued (1)",last:"2026-08-10"},
+  {p:"Meridian Core Banking Rewrite",poc:"Jenna Ortiz",status:"Completed",answered:8,total:8,followup:"Sent · answered",last:"2026-08-08"},
+  {p:"Quantum-Safe Crypto Migration",poc:"Ahmed Farouk",status:"Sent",answered:0,total:7,followup:"—",last:"2026-08-10"},
+  {p:"Voice Biometrics Auth Platform",poc:"Lena Kowalski",status:"Completed",answered:7,total:7,followup:"—",last:"2026-08-06"},
+  {p:"Edge CDN Optimization Research",poc:"Marcus Webb",status:"Generated (unsent)",answered:0,total:6,followup:"—",last:"—"}
+ ],
+ evidence:[
+  {req:"Contemporaneous experimentation records (per key project)",status:"satisfied",strength:"Strong",items:"Git history (14k commits), design docs ×23"},
+  {req:"Technical uncertainty documentation",status:"satisfied",strength:"Strong",items:"Architecture decision records ×9, spike reports ×7"},
+  {req:"Time allocation basis (per resource)",status:"partial",strength:"Medium",items:"Jira worklogs 8/12 resources; 4 via survey (reconstructed)"},
+  {req:"Contract risk & rights — Meridian projects",status:"satisfied",strength:"Strong",items:"MSA §7.2 + SOW-114 rights clause (AI-extracted, TC-verified)"},
+  {req:"Funded research analysis — TeleSure",status:"satisfied",strength:"Strong",items:"SOW-097: customer bears risk + retains rights → excluded"},
+  {req:"Prior-year QRE support (3 years)",status:"partial",strength:"Medium",items:"2024 ✓ 2023 ✓ 2022 pending client records"}
+ ],
+ financial:{
+  wages:"$11,240,000",supplies:"$1,180,000",contract:"$2,340,000 → $1,521,000 (×65%)",cloud:"$2,145,000",
+  qre:"$16,086,000",prior3:"$12,133,333",base:"$6,066,667",excess:"$10,019,333",rate:"14%",gross:"$1,402,707",s280c:"Reduced credit elected",credit:"$2,412,900 (fed+state combined)"
+ },
+ forms:[{name:"Form 6765 — Credit for Increasing Research Activities",status:"Draft (HTML preview)",filing:"US Federal"},{name:"CA Form 3523 — Research Credit",status:"Draft",filing:"California"},{name:"NY CT-3 Attachment",status:"Not started",filing:"New York"}],
+ dossier:[{c:"Executive Summary (PDF)",s:"generated"},{c:"Project List",s:"generated"},{c:"Project Resources",s:"generated"},{c:"Financial Working (per filing)",s:"stale"},{c:"Technical Summaries (approved v5)",s:"generated"},{c:"Forms (all filings)",s:"pending"}],
+ tasks:{
+  lanes:["Data Load","Assessment","Interactions","Technical Review","Financial Review","Filing"],
+  cards:[
+   {t:"Ingest FY2025 payroll + GL",lane:0,due:"Done",who:"DA",pill:"ok"},
+   {t:"Load project roster (32 projects)",lane:0,due:"Done",who:"DA",pill:"ok"},
+   {t:"AssessmentRun #12 — all projects",lane:1,due:"Done",who:"⚙",pill:"ok"},
+   {t:"Review contract risk — Atlas (T&M+Cap)",lane:3,due:"Aug 12",who:"WC",pill:"warn"},
+   {t:"Bulk interactions — wave 2",lane:2,due:"Aug 11",who:"PS",pill:"n"},
+   {t:"Deep-dive interview — Helios team",lane:3,due:"Aug 13",who:"WC",pill:"n"},
+   {t:"Resolve judgment gate — Atlas uncertainty",lane:3,due:"Aug 14",who:"WC",pill:"warn"},
+   {t:"Financial working review — CA filing",lane:4,due:"Blocked · gate",who:"SR",pill:"err"},
+   {t:"Form 6765 finalization",lane:5,due:"Blocked · gate",who:"SR",pill:"err"}
+  ]
+ },
+ timeline:[
+  {who:"Wei Chen",what:"locked qre_pct for Dr. Elena Vasquez at 95%",when:"Aug 9, 14:22",chan:"UI",detail:"QREAdjustment · comment attached"},
+  {who:"Platform",what:"AssessmentRun #12 completed — 6 projects · 4 summaries regenerated · 2 follow-ups queued",when:"Aug 9, 13:05",chan:"WORKFLOW",detail:"BackgroundJob #341 · 6/6 succeeded"},
+  {who:"Jenna Ortiz (PoC)",what:"submitted interaction responses (6/9) — Atlas",when:"Aug 9, 11:48",chan:"PORTAL",detail:"Summary v4 draft regenerated · QRE proposal updated · follow-up queued"},
+  {who:"John Doe",what:"sent interaction campaign wave 1 (5 projects)",when:"Aug 8, 09:30",chan:"UI",detail:"Campaign #18 · OTP links emailed"},
+  {who:"Sofia Rossi",what:"entered case inputs — prior-year QRE ×3",when:"Aug 7, 16:02",chan:"UI",detail:"CaseInputValue · seeded from CASE-2024-0117"},
+  {who:"Platform",what:"ingestion pipeline 'Workday HRIS' — 214 resources upserted",when:"Aug 6, 02:00",chan:"INGESTION",detail:"IngestionRun #77 · 0 quarantined"}
+ ]
+},
+filmCase:{
+ id:"CASE-2025-0198",account:"Aurora Pictures LLC",production:"“Midnight Harbor” (Feature)",fy:"FY2025",status:"CPA Attestation",readiness:84,
+ filings:[
+  {id:"g-ga",name:"Georgia (Transferable)",state:"cpa_attestation",credit:"$5,110,000",spend:"$17,034,000",cap:"Uncapped · 20% + 10% uplift",outcome:"—"},
+  {id:"g-ny",name:"New York (Refundable)",state:"production",credit:"$1,830,000",spend:"$6,100,000",cap:"Reservation #NY-25-0441 ✓",outcome:"—"}
+ ],
+ phases:[
+  {ph:"Development",loc:"Los Angeles, CA",dates:"Jan – Mar 2025",spend:"$1.2M",inState:"—"},
+  {ph:"Pre-production",loc:"Savannah, GA",dates:"Apr – May 2025",spend:"$2.8M",inState:"GA"},
+  {ph:"Principal Photography",loc:"Savannah + Brunswick, GA",dates:"Jun – Sep 2025",spend:"$14.6M",inState:"GA"},
+  {ph:"Principal Photography (unit 2)",loc:"Buffalo, NY",dates:"Aug 2025",spend:"$4.9M",inState:"NY"},
+  {ph:"Post-production",loc:"Atlanta, GA",dates:"Oct 2025 – Jan 2026",spend:"$3.1M",inState:"GA"}
+ ],
+ personnel:[
+  {name:"Rachel Donovan",line:"ATL",role:"Director",res:"GA resident ✓",loan:"Donovan Films Inc. — registered ✓",pct:100,locked:true},
+  {name:"Marcus Cole",line:"ATL",role:"Lead Actor",res:"Non-resident",loan:"MC Entertainment LLC — registered ✓",pct:100,locked:false},
+  {name:"Ana Gutierrez",line:"BTL",role:"Director of Photography",res:"GA resident ✓",loan:"—",pct:100,locked:false},
+  {name:"Crew — GA local (142)",line:"BTL",role:"Various",res:"GA residents ✓",loan:"—",pct:100,locked:false},
+  {name:"Crew — NY unit (38)",line:"BTL",role:"Various",res:"NY residents 31/38",loan:"—",pct:100,locked:false},
+  {name:"VFX Team — remote (12)",line:"BTL",role:"VFX",res:"Mixed",loan:"—",pct:0,locked:false,flag:"excluded — out-of-state services"}
+ ],
+ spend:[
+  {cat:"Resident labour (GA)",amt:"$6,940,000",pct:100,src:"computed",locked:false},
+  {cat:"Non-resident labour (capped)",amt:"$2,210,000",pct:100,src:"computed",locked:false},
+  {cat:"In-state vendor spend (GA)",amt:"$5,684,000",pct:96,src:"manual",locked:true},
+  {cat:"Equipment rental (GA)",amt:"$1,430,000",pct:100,src:"computed",locked:false},
+  {cat:"Post-production (GA)",amt:"$770,000",pct:100,src:"ai",locked:false},
+  {cat:"NY unit qualified spend",amt:"$6,100,000",pct:94,src:"ai",locked:false}
+ ],
+ attestation:{status:"awaiting_signature",cpa:"Hartwell & Gray LLP (Emily Hartwell, CPA)",package:"Sent Aug 8 · opened Aug 9",note:"AUP fieldwork complete; report signature expected Aug 12"},
+ monetization:{path:"Transfer (GA)",instrument:"Pending certification",est:"$5.11M certified est.",buyer:"LOI — Concordia Insurance Group",broker:"CineTax Partners",discount:"92¢ / $1.00",note:"NY filing = refundable — no transfer"},
+ dossier:[{c:"Executive Summary (PDF)",s:"generated"},{c:"Production Summary",s:"generated"},{c:"Personnel & Labour",s:"stale"},{c:"Financial Working (GA + NY)",s:"generated"},{c:"Creative/Technical Summary",s:"generated"},{c:"Forms (GA application + NY cert)",s:"generated"},{c:"CPA Attestation",s:"pending"},{c:"Monetization Summary",s:"pending"}],
+ tasks:{
+  lanes:["Application","Production Data","Labour Verify","Assessment","CPA Gate","Certification","Monetization"],
+  cards:[
+   {t:"GA application + provisional computation",lane:0,due:"Done",who:"PS",pill:"ok"},
+   {t:"NY allocation reservation #NY-25-0441",lane:0,due:"Done",who:"PS",pill:"ok"},
+   {t:"Weekly payroll ingest (EP)",lane:1,due:"Recurring",who:"⚙",pill:"n"},
+   {t:"Verify 6 loan-out registrations",lane:2,due:"Done",who:"FL",pill:"ok"},
+   {t:"NY residency certs — 7 outstanding",lane:2,due:"Aug 12",who:"FL",pill:"warn"},
+   {t:"Uplift eligibility review (GA promo logo)",lane:3,due:"Aug 11",who:"WC",pill:"n"},
+   {t:"CPA AUP report signature",lane:4,due:"Aug 12 · GATE",who:"EH",pill:"warn"},
+   {t:"GA certification submission",lane:5,due:"Blocked · gate",who:"SR",pill:"err"},
+   {t:"Execute transfer — Concordia LOI",lane:6,due:"Blocked",who:"SR",pill:"err"}
+  ]
+ },
+ timeline:[
+  {who:"Emily Hartwell (CPA)",what:"opened attestation package via external portal",when:"Aug 9, 10:15",chan:"PORTAL",detail:"OTP verified · ExternalAttestor scope"},
+  {who:"Platform",what:"ingestion 'Entertainment Partners payroll' — 4,211 spend lines",when:"Aug 8, 02:00",chan:"INGESTION",detail:"38 quarantined (missing vendor tax IDs)"},
+  {who:"Sofia Rossi",what:"locked in-state vendor spend qualifying% at 96%",when:"Aug 7, 15:40",chan:"UI",detail:"SpendAdjustment · comment attached"},
+  {who:"Platform",what:"GA provisional computation — $5.11M @ 30% (20% base + 10% uplift)",when:"Jul 30, 11:20",chan:"WORKFLOW",detail:"ComputationRun (provisional) · snapshot #1"}
+ ]
+},
+notifications:[
+ {t:"Interaction responses received — Atlas",m:"Jenna Ortiz answered 6/9. Summary v4 regenerated; 1 follow-up queued for your review.",d:"Today 11:48 · CASE-2025-0142",unread:true},
+ {t:"CPA package opened",m:"Emily Hartwell (Hartwell & Gray) opened the Midnight Harbor attestation package.",d:"Today 10:15 · CASE-2025-0198",unread:true},
+ {t:"Deadline: NY residency certs",m:"7 residency certifications outstanding — due Aug 12 (certification prerequisite).",d:"Today 08:00 · CASE-2025-0198",unread:true},
+ {t:"AssessmentRun #12 completed",m:"6/6 projects assessed · 4 summaries regenerated · 2 follow-ups queued · 0 failed.",d:"Yesterday 13:05 · CASE-2025-0142",unread:false},
+ {t:"Ingestion completed with quarantine",m:"EP payroll: 4,211 created · 38 quarantined (missing vendor tax IDs). Review required.",d:"Aug 8 02:00 · CASE-2025-0198",unread:false}
+],
+jobs:[
+ {n:"AssessmentRun #12 — CASE-2025-0142 (6 projects)",s:"completed",pct:100,stat:"6 succeeded · 0 failed",when:"Yesterday 13:05"},
+ {n:"EP payroll ingestion — 4,249 rows",s:"completed_with_errors",pct:100,stat:"4,211 created · 38 quarantined",when:"Aug 8 02:00"},
+ {n:"Dossier draft build — CASE-2025-0142",s:"completed",pct:100,stat:"5/6 components (1 stale)",when:"Aug 7 17:12"}
+]
+};
+</script>
+<script>
+/* =================== CORE =================== */
+S.resources=S.rndCase.resources;
+const $=s=>document.querySelector(s);
+let route="home", rndTab="overview", filmTab="overview", rndFiling="f-fed", filmFiling="g-ga", rollup="simple", taskView="kanban", attested=false;
+function toast(m){const t=$("#toast");t.textContent=m;t.classList.add("show");setTimeout(()=>t.classList.remove("show"),2600)}
+function toggleTheme(){const h=document.documentElement;const d=h.dataset.theme==="light";h.dataset.theme=d?"dark":"light";$("#theme-btn").innerHTML=`<span data-ic="${d?"sun":"moon"}"></span>`;hydrateIcons();renderCharts()}
+function toggleNav(){$("#leftnav").classList.toggle("rail")}
+function toggleDrawer(k){["ntf","jobs","pal"].forEach(x=>{const d=$("#drawer-"+x);if(x===k)d.classList.toggle("show");else d.classList.remove("show")});if(k==="ntf"){$("#ntf-badge").style.display="none"}}
+function go(r){route=r;render();window.scrollTo(0,0)}
+function pill(s){const map={pass:["ok","Pass"],review:["warn","Needs review"],fail:["err","Fail"],satisfied:["ok","Satisfied"],partial:["warn","Partial"],generated:["ok","Generated"],stale:["warn","Stale"],pending:["n","Pending"],completed:["ok","Completed"],completed_with_errors:["warn","Completed w/ errors"]};const[c,l]=map[s]||["n",s];return `<span class="pill ${c}">${l}</span>`}
+function srcBadge(s){const m={computed:"computed",manual:"manual",ai:"ai suggested",redist:"redistributed"};return `<span class="src-badge src-${s==='ai'?'ai':s==='redist'?'redist':s}">${m[s]||s}</span>`}
+function openModal(html){$("#modal").innerHTML=html;$("#ovl").classList.add("show")}
+function closeModal(){$("#ovl").classList.remove("show")}
+/* ============ NAV ============ */
+const NAV=[
+ {h:"Workspaces",items:[["home","home","Home / Work Queue"],["accounts","building","CRM · Accounts"],["rnd","briefcase","R&D Case — Northwind"],["film","clapper","Film Case — Midnight Harbor"],["dash","chart","Dashboards"]]},
+ {h:"Data",items:[["import","download","Import / Bulk Ops"],["jobsview","activity","Background Jobs"]]},
+ {h:"Admin",items:[["admin","shield","Security & Access"],["ops","monitor","Operations (OCC)"],["studio","layers","Authoring Studio"]]}
+];
+function renderNav(){$("#leftnav").innerHTML=NAV.map(g=>`<div class="nav-group"><div class="nav-h nl">${g.h}</div>${g.items.map(i=>`<button class="nav-i ${route===i[0]?'on':''}" onclick="go('${i[0]}')"><span class="ic">${ic(i[1],16)}</span><span class="nl">${i[2]}</span></button>`).join("")}</div>`).join("")}
+/* ============ DRAWERS ============ */
+function renderDrawers(){
+ $("#ntf-list").innerHTML=S.notifications.map(n=>`<div class="ntf ${n.unread?'unread':''}"><div class="nt">${n.t}</div><div class="nm">${n.m}</div><div class="nd">${n.d}</div></div>`).join("");
+ $("#jobs-list").innerHTML=S.jobs.map(j=>`<div class="ntf"><div class="nt">${j.n}</div><div class="nm">${pill(j.s)} ${j.stat}</div><div class="prog"><i style="width:${j.pct}%"></i></div><div class="nd">${j.when}</div></div>`).join("");
+}
+/* ============ GLOBAL SEARCH ============ */
+const GS=[["ACCOUNT","Northwind Global Holdings","accounts"],["ACCOUNT","Aurora Pictures Group","accounts"],["CASE","CASE-2025-0142 · Northwind FY2025 (R&D)","rnd"],["CASE","CASE-2025-0198 · Midnight Harbor (Film)","film"],["PROJECT","Helios — ML Demand Forecasting Engine","rnd"],["PROJECT","Atlas — Distributed Ledger Settlement","rnd"],["PRODUCTION","“Midnight Harbor” (Feature)","film"],["CONTACT","Jenna Ortiz — Meridian Bank Group","accounts"],["FORM","Form 6765 — US Federal draft","rnd"]];
+function gSearch(q){const r=$("#gs-results");if(!q){r.classList.remove("show");return}
+ const hits=GS.filter(x=>x[1].toLowerCase().includes(q.toLowerCase()));
+ r.innerHTML=`<div class="facets"><span class="chip on">All (${hits.length})</span><span class="chip">Cases</span><span class="chip">Projects</span><span class="chip">Accounts</span><span class="chip">Contacts</span></div>`+
+  (hits.map(h=>`<div class="gsr" onclick="go('${h[2]}');document.getElementById('gs-results').classList.remove('show');document.getElementById('gsi').value=''"><span class="ent">${h[0]}</span>${h[1]}</div>`).join("")||`<div class="gsr">No results</div>`);
+ r.classList.add("show")}
+document.addEventListener("click",e=>{if(!e.target.closest("#gsearch"))$("#gs-results").classList.remove("show")});
+document.addEventListener("keydown",e=>{if(e.key==="/"&&document.activeElement.tagName!=="INPUT"&&document.activeElement.tagName!=="TEXTAREA"){e.preventDefault();$("#gsi").focus()}if(e.key==="Escape"){closeModal();$("#gs-results").classList.remove("show")}});
+/* ============ SECTIONS ============ */
+function sec(title,body,open=true,extra=""){return `<div class="sec ${open?'':'closed'}"><div class="sec-h" onclick="this.parentElement.classList.toggle('closed')"><span class="car">▼</span>${title}${extra}</div><div class="sec-b">${body}</div></div>`}
+/* ============ SCREENS ============ */
+function render(){renderNav();const c=$("#content");
+ if(route==="home")c.innerHTML=homeScreen();
+ else if(route==="accounts")c.innerHTML=accountsScreen();
+ else if(route==="rnd")c.innerHTML=rndScreen();
+ else if(route==="film")c.innerHTML=filmScreen();
+ else if(route==="dash")c.innerHTML=dashScreen();
+ else if(route==="import")c.innerHTML=importScreen();
+ else if(route==="jobsview")c.innerHTML=jobsScreen();
+ else if(route==="admin")c.innerHTML=adminScreen();
+ else if(route==="ops")c.innerHTML=occScreen();
+ else if(route==="studio")c.innerHTML=studioScreen();
+ renderDrawers();if(route==="dash")setTimeout(renderCharts,30)}
+/* ---- HOME ---- */
+function homeScreen(){return `
+<div class="pane-h"><div class="ph-row"><div class="ph-title">Good morning, John</div><span class="pill info">PSC Lead</span><span style="flex:1"></span><button class="btn" onclick="go('dash')">${ic("chart",14)} Firm dashboards</button></div></div>
+<div class="body-scroll">
+<div class="grid4" style="margin-bottom:16px">
+<div class="tile"><div class="tl">My open cases</div><div class="tv">7</div><div class="td"><span class="up">▲ 2</span> this month</div></div>
+<div class="tile"><div class="tl">Tasks due this week</div><div class="tv">12</div><div class="td">3 <span class="down">overdue</span></div></div>
+<div class="tile"><div class="tl">Awaiting my review</div><div class="tv">5</div><div class="td">2 AI proposals · 1 follow-up · 2 forms</div></div>
+<div class="tile"><div class="tl">Portfolio credit value</div><div class="tv">$11.2M</div><div class="td"><span class="up">▲ $1.4M</span> vs last FY</div></div>
+</div>
+${sec("Review queue",`<table class="lv"><thead><tr><th>Item</th><th>Case</th><th>Type</th><th>Waiting</th><th></th></tr></thead><tbody>
+<tr onclick="go('rnd');rndTab='ai'"><td class="link">Follow-up interaction — Atlas (1 queued)</td><td>CASE-2025-0142</td><td><span class="pill info">AI · follow-up</span></td><td>2h</td><td>→</td></tr>
+<tr onclick="go('rnd');rndTab='qre'"><td class="link">QRE Assessor proposal — Edge CDN (76% → 81%)</td><td>CASE-2025-0142</td><td><span class="pill info">AI · QRE</span></td><td>1d</td><td>→</td></tr>
+<tr onclick="go('film');filmTab='cpa'"><td class="link">CPA attestation signature — Midnight Harbor</td><td>CASE-2025-0198</td><td><span class="pill warn">Gate</span></td><td>2d</td><td>→</td></tr>
+<tr onclick="go('rnd');rndTab='forms'"><td class="link">Form 6765 draft review</td><td>CASE-2025-0142</td><td><span class="pill n">Form</span></td><td>3d</td><td>→</td></tr>
+</tbody></table>`)}
+${sec("My cases",`<table class="lv"><thead><tr><th>Case</th><th>Client</th><th>Domain</th><th>Status</th><th>Filings</th><th class="num">Est. credit</th><th>Readiness</th></tr></thead><tbody>
+<tr onclick="go('rnd')"><td class="link">CASE-2025-0142</td><td>Northwind Technologies Inc.</td><td>R&D</td><td><span class="pill warn">Technical Review</span></td><td>Federal + CA + NY</td><td class="num">$3,382,600</td><td><div class="readiness"><div class="rbar"><i style="width:78%;background:var(--warn)"></i></div>78%</div></td></tr>
+<tr onclick="go('film')"><td class="link">CASE-2025-0198</td><td>Aurora Pictures LLC</td><td>Film & Media</td><td><span class="pill warn">CPA Attestation</span></td><td>GA + NY</td><td class="num">$6,940,000</td><td><div class="readiness"><div class="rbar"><i style="width:84%;background:var(--ok)"></i></div>84%</div></td></tr>
+<tr><td class="link">CASE-2025-0151</td><td>Northwind Labs UK Ltd</td><td>R&D (UK)</td><td><span class="pill n">Data Load</span></td><td>UK merged scheme</td><td class="num">$830,000</td><td><div class="readiness"><div class="rbar"><i style="width:31%;background:var(--err)"></i></div>31%</div></td></tr>
+</tbody></table>`)}
+${sec("Deadlines & alerts",`<div class="grid3">
+<div class="card"><div class="card-b"><span class="pill err">Due Aug 12</span><div style="font-weight:600;margin:6px 0 2px">NY residency certifications ×7</div><div style="font-size:11.5px;color:var(--text-secondary)">Certification prerequisite — Midnight Harbor NY filing</div></div></div>
+<div class="card"><div class="card-b"><span class="pill warn">Due Aug 14</span><div style="font-weight:600;margin:6px 0 2px">Atlas judgment gate unresolved</div><div style="font-size:11.5px;color:var(--text-secondary)">Filing cannot show eligible until asserted (3-valued logic)</div></div></div>
+<div class="card"><div class="card-b"><span class="pill info">Scheduled</span><div style="font-weight:600;margin:6px 0 2px">Nightly AssessmentRun — idle</div><div style="font-size:11.5px;color:var(--text-secondary)">Last run no-op'd 4/6 projects (inputs unchanged)</div></div></div>
+</div>`)}
+</div>`}
+/* ---- ACCOUNTS ---- */
+let selAcc="acc1";
+function selAccount(id){selAcc=id;render()}
+function accountsScreen(){const a=S.accounts.find(x=>x.id===selAcc);
+ const tree=`<div class="tree-i ${selAcc==='acc1'?'on':''}" onclick="selAccount('acc1')">▾ 🏢 Northwind Global Holdings</div>
+ <div class="tree-i ind1 ${selAcc==='acc2'?'on':''}" onclick="selAccount('acc2')">🏛 Northwind Technologies Inc. <span class="pill n">US</span></div>
+ <div class="tree-i ind1 ${selAcc==='acc3'?'on':''}" onclick="selAccount('acc3')">🏛 Northwind Labs UK Ltd <span class="pill n">UK</span></div>
+ <div class="tree-i ${selAcc==='acc4'?'on':''}" onclick="selAccount('acc4')" style="margin-top:8px">▾ 🏢 Aurora Pictures Group</div>
+ <div class="tree-i ind1 ${selAcc==='acc5'?'on':''}" onclick="selAccount('acc5')">🏛 Aurora Pictures LLC (SPV) <span class="pill n">GA</span></div>`;
+ return `
+<div class="pane-h"><div class="ph-row"><div class="ph-title">CRM · Accounts</div><span style="flex:1"></span><button class="btn">＋ New account</button><button class="btn" onclick="toast('Export honors current filters & columns → CSV / XLSX / PDF')">⬇ Export</button></div>
+<div class="lc"><span class="chip on">My accounts</span><span class="chip">All accounts</span><span class="chip">US</span><span class="chip">EMEA</span><span class="sp"></span><input placeholder="Search list…"><button class="chip" onclick="toast('Advanced filter builder — field / operator / value with AND-OR groups')">⚑ Filter</button><button class="chip" onclick="toast('Column customization: show/hide, drag-reorder, pin — persisted per user')">☰ Columns</button><button class="chip">💾 Saved views ▾</button></div></div>
+<div style="display:grid;grid-template-columns:280px 1fr;min-height:0;flex:1">
+<div style="border-right:1px solid var(--border);background:var(--bg-surface);padding:12px;overflow-y:auto">${tree}</div>
+<div class="body-scroll">
+<div class="ph-row"><div class="ph-title" style="font-size:16px">${a.name}</div><span class="pill n">${a.type}</span>${a.entity?`<span class="pill info">Legal Entity · ${a.jurisdiction}</span>`:""}</div>
+<div class="grid4" style="margin:10px 0 16px">
+<div class="tile"><div class="tl">Subtree credit value (FY2025)</div><div class="tv">${a.credit}</div><div class="td prov" onclick="openProv('rollup')">drill through ↗</div></div>
+<div class="tile"><div class="tl">Active cases</div><div class="tv">${a.cases}</div><div class="td">across subtree</div></div>
+<div class="tile"><div class="tl">Country / Industry</div><div class="tv" style="font-size:15px">${a.country}</div><div class="td">${a.industry}</div></div>
+<div class="tile"><div class="tl">Fiscal year</div><div class="tv" style="font-size:15px">${a.fy||"—"}</div><div class="td">${a.entity?"business-managed · Settings tab":"—"}</div></div>
+</div>
+${sec("Cases",`<table class="lv"><thead><tr><th>Case</th><th>FY</th><th>Domain</th><th>Status</th><th class="num">Est. credit</th></tr></thead><tbody>
+${selAcc.startsWith("acc4")||selAcc==="acc5"?`<tr onclick="go('film')"><td class="link">CASE-2025-0198 — Midnight Harbor</td><td>FY2025</td><td>Film & Media</td><td><span class="pill warn">CPA Attestation</span></td><td class="num">$6,940,000</td></tr>`:`<tr onclick="go('rnd')"><td class="link">CASE-2025-0142</td><td>FY2025</td><td>R&D</td><td><span class="pill warn">Technical Review</span></td><td class="num">$3,382,600</td></tr>
+<tr><td class="link">CASE-2024-0117</td><td>FY2024</td><td>R&D</td><td><span class="pill ok">Closed · Approved</span></td><td class="num">$2,871,400</td></tr>`}
+</tbody></table>`)}
+${sec("Settings (business configuration)",`<table class="lv"><thead><tr><th>Setting</th><th>Value</th><th>Source</th><th>Effective</th></tr></thead><tbody>
+<tr><td>Reporting currency</td><td><b>USD</b></td><td><span class="pill n">set here</span></td><td>2024-01-01 → open</td></tr>
+<tr><td>Functional currency (entity)</td><td><b>${a.country==="UK"?"GBP":"USD"}</b></td><td><span class="pill n">set here</span></td><td>2024-01-01 → open</td></tr>
+<tr><td>Default roll-up method</td><td><b>Simple average</b></td><td><span class="pill info">inherited from Tenant</span></td><td>—</td></tr>
+<tr><td>Fiscal years</td><td><b>${a.fy||"per entity"}</b> · FY2026 future-dated ✓</td><td><span class="pill n">set here</span></td><td>overlap-validated</td></tr>
+</tbody></table><div class="note">Every value is effective-dated with history; edits gated by <b>editable_by</b> + field-level security. Changes never alter filed snapshots.</div>`,false)}
+${sec("Timeline",`<div class="tl-item"><div class="tl-dot"></div><div><b>Sofia Rossi</b> updated FY2026 fiscal calendar (future-dated) <span class="chan">UI</span><div class="tl-meta">Aug 7, 16:10 · ConfigValue · Timeline-audited</div></div></div>
+<div class="tl-item"><div class="tl-dot"></div><div><b>Platform</b> subtree roll-up recomputed — $4.21M <span class="chan">WORKFLOW</span><div class="tl-meta">Aug 7, 03:00 · aggregate-in-region</div></div></div>`,false)}
+</div></div>`}
+/* ---- PROVENANCE ---- */
+function openProv(kind){
+ if(kind==="credit")openModal(`<div class="modal-h">Provenance — Federal gross credit $1,402,707 <button onclick="closeModal()">✕</button></div><div class="modal-b">
+ <div class="note">Every number traces to inputs + pinned rule versions. Click any node in the real product.</div>
+ <table class="lv"><thead><tr><th>DAG node</th><th class="num">Value</th><th>Source</th></tr></thead><tbody>
+ <tr><td>qualifying_wages</td><td class="num">$11,240,000</td><td>2,847 cost lines · Workday GL</td></tr>
+ <tr><td>contract_research × 0.65</td><td class="num">$1,521,000</td><td>Param §41(b)(3) v2025.1</td></tr>
+ <tr><td>current_QRE (Σ)</td><td class="num">$16,086,000</td><td>operator: sum</td></tr>
+ <tr><td>prior_3yr_avg × 50%</td><td class="num">$6,066,667</td><td>CaseInputValues (3) · seeded prior case</td></tr>
+ <tr><td>excess</td><td class="num">$10,019,333</td><td>subtract · floor 0</td></tr>
+ <tr><td><b>× ASC rate 14%</b></td><td class="num"><b>$1,402,707</b></td><td>Param ASC_rate v2025.1 · valid 2025-01-01→open</td></tr>
+ </tbody></table>
+ <div class="note">Snapshot: RuleSet v2025.1 + CalcGraph v7 + config pinned on this ComputationRun — re-runs reproduce exactly, forever.</div></div>
+ <div class="modal-f"><button class="btn" onclick="closeModal()">Close</button></div>`);
+ else openModal(`<div class="modal-h">Drill-through — subtree roll-up <button onclick="closeModal()">✕</button></div><div class="modal-b"><table class="lv"><thead><tr><th>Contributing case</th><th class="num">Credit</th></tr></thead><tbody><tr><td>CASE-2025-0142 · Northwind Tech (Fed+CA+NY)</td><td class="num">$3,382,600</td></tr><tr><td>CASE-2025-0151 · Northwind UK</td><td class="num">$830,000</td></tr></tbody></table><div class="note">Roll-ups respect access, territory & residency (aggregate-in-region).</div></div><div class="modal-f"><button class="btn" onclick="closeModal()">Close</button></div>`)}
+</script>
+<script>
+/* =================== R&D CASE =================== */
+const RT=[["overview","Overview"],["filings","Scope & Filings"],["projects","Projects"],["qre","QRE% Grid"],["ai","AI & Interactions"],["evidence","Evidence"],["fin","Financials"],["forms","Forms"],["dossier","Dossier"],["tasks","Tasks"],["settings","Settings"],["timeline","Timeline"]];
+function setRndTab(t){rndTab=t;render()}
+function rndScreen(){const C=S.rndCase;
+ return `
+<div class="pane-h"><div class="crumbs"><a href="#" onclick="go('accounts');return false">Northwind Global Holdings</a> › Northwind Technologies Inc. › <b>${C.id}</b></div>
+<div class="ph-row"><div class="ph-title">${ic("briefcase",20)} ${C.id} — R&D · ${C.fy}</div><span class="pill warn">${C.status}</span><span class="pill n">${C.scope}</span>
+<div class="readiness" style="width:170px"><div class="rbar"><i style="width:${C.readiness}%;background:var(--warn)"></i></div><b>${C.readiness}%</b></div>
+<span style="flex:1"></span>
+<button class="btn pri" onclick="runAssessment()">${ic("play",13)} Run R&D Assessment</button>
+<button class="btn" onclick="toast('Case exported to PDF (branded, draft-watermarked)')">⬇ Export PDF</button></div></div>
+<div class="tabs">${RT.map(t=>`<button class="tab ${rndTab===t[0]?'on':''}" onclick="setRndTab('${t[0]}')">${t[1]}</button>`).join("")}</div>
+<div class="body-scroll">${rndTabBody(C)}</div>`}
+function filingSeg(C,cur,setter){return `<div class="seg">${C.filings.map(f=>`<button class="${cur===f.id?'on':''}" onclick="${setter}('${f.id}')">${f.name.split(" (")[0]}</button>`).join("")}</div>`}
+function setRndFiling(f){rndFiling=f;render()}
+function rndTabBody(C){const F=C.filings.find(f=>f.id===rndFiling);
+ if(rndTab==="overview")return `
+ <div class="grid4" style="margin-bottom:14px">
+ <div class="tile"><div class="tl">Estimated credit (all filings)</div><div class="tv">$3,382,600</div><div class="td prov" onclick="openProv('credit')">trace to source ↗</div></div>
+ <div class="tile"><div class="tl">Shared QRE (FY2025)</div><div class="tv">$16.09M</div><div class="td">computed once · inherited by CA + NY</div></div>
+ <div class="tile"><div class="tl">Projects in scope</div><div class="tv">6</div><div class="td">2 key · 1 excluded (funded)</div></div>
+ <div class="tile"><div class="tl">Open gates</div><div class="tv">2</div><div class="td">Atlas judgment · prior-yr evidence</div></div></div>
+ ${sec("Case Team",`<table class="lv"><thead><tr><th>Role</th><th>Member</th></tr></thead><tbody>${S.caseTeam.map(m=>`<tr><td>${m.r}</td><td><b>${m.n}</b></td></tr>`).join("")}</tbody></table><div class="note">Handoffs (TC → FC default) are playbook config — reassignment re-routes open tasks.</div>`)}
+ ${sec("Program filings",`<table class="lv"><thead><tr><th>Filing</th><th>Lifecycle</th><th class="num">QRE (per-filing)</th><th class="num">Est. credit</th><th>Eligibility (P/R/F)</th><th>Outcome</th></tr></thead><tbody>
+ ${C.filings.map(f=>`<tr onclick="rndFiling='${f.id}';setRndTab('filings')"><td class="link">${f.name}</td><td><span class="pill ${f.state==='in_preparation'?'n':'warn'}">${f.state.replace(/_/g," ")}</span></td><td class="num">${f.qre}</td><td class="num">${f.credit}</td><td><span class="pill ok">${f.eligibility.pass}</span> <span class="pill warn">${f.eligibility.review}</span> <span class="pill err">${f.eligibility.fail}</span></td><td>${f.outcome}</td></tr>`).join("")}
+ </tbody></table><div class="note">Shared subject data + technical QRE% computed once; <b>eligibility verdicts & qualifying amounts are per filing</b> — a state can diverge from federal.</div>`)}`;
+ if(rndTab==="filings")return `
+ <div class="ph-row">${filingSeg(C,rndFiling,"setRndFiling")}<span class="pill n">switch federal ↔ state = 1 click</span></div>
+ <div class="grid3" style="margin:12px 0">
+ <div class="tile"><div class="tl">${F.name} — est. credit</div><div class="tv">${F.credit}</div><div class="td prov" onclick="openProv('credit')">provenance ↗</div></div>
+ <div class="tile"><div class="tl">Qualifying amount (this filing)</div><div class="tv">${F.qre}</div><div class="td">from shared QRE% · filing-specific rules</div></div>
+ <div class="tile"><div class="tl">Lifecycle</div><div class="tv" style="font-size:15px">${F.state.replace(/_/g," ")}</div><div class="td">cartridge state machine</div></div></div>
+ ${sec("Submission scope election",`<div class="card"><div class="card-b" style="display:flex;gap:14px;align-items:center;flex-wrap:wrap">
+ <span>Election: <b>Federal + all applicable states</b></span><span class="pill ok">CA — applicable (auto: footprint)</span><span class="pill ok">NY — applicable (auto: payroll)</span><span class="pill n">WA — no R&D credit</span>
+ <span style="flex:1"></span><button class="btn sm" onclick="toast('Scope change is PSC / PSC-Lead gated; filed filings protected; change is Timeline-audited')">Change scope…</button></div></div>`)}
+ ${sec("Per-filing eligibility divergence",`<table class="lv"><thead><tr><th>Project</th><th>US Federal</th><th>California</th><th>New York</th></tr></thead><tbody>
+ <tr><td>Helios — ML Forecasting</td><td>${pill("pass")}</td><td>${pill("pass")}</td><td>${pill("pass")}</td></tr>
+ <tr><td>Atlas — Ledger Settlement</td><td>${pill("review")}</td><td>${pill("review")}</td><td>${pill("review")}</td></tr>
+ <tr><td>Meridian Core Banking</td><td>${pill("pass")}</td><td>${pill("pass")}</td><td>${pill("fail")}<div style="font-size:10.5px;color:var(--text-muted)">NY: out-of-state activity excluded</div></td></tr>
+ <tr><td>Voice Biometrics (TeleSure)</td><td>${pill("fail")}</td><td>${pill("fail")}</td><td>${pill("fail")}</td></tr>
+ </tbody></table><div class="note">Same shared QRE% — different per-filing verdicts. Click any verdict for its reasoning trace in the full product.</div>`)}`;
+ if(rndTab==="projects")return `
+ <div class="lc"><span class="chip on">All (6)</span><span class="chip">Key projects (2)</span><span class="chip">Client-delivered (3)</span><span class="chip">Needs review (1)</span><span class="sp"></span><input placeholder="Search projects…"><button class="chip">⚑ Filter</button><button class="chip">☰ Columns</button><button class="chip" onclick="toast('Bulk actions: preview → approve → apply; guarded fields still route via adjustments')">▦ Bulk actions</button></div>
+ <table class="lv"><thead><tr><th>Project</th><th>Contract type</th><th>Client group</th><th class="num">FTE / Subcon</th><th>QRE% (S / CW)</th><th>Eligibility</th><th>Contract risk</th><th>PoC</th></tr></thead><tbody>
+ ${C.projects.map(p=>`<tr onclick="toast('Project detail page — full Timeline + related lists (primary entity)')">
+ <td class="link">${p.key?"⭐ ":""}${p.name}<div style="font-size:10.5px;color:var(--text-muted)">${p.group}</div></td>
+ <td><span class="pill ${p.ctype==='Fixed Price'?'info':p.ctype==='Internal'?'n':'warn'}">${p.ctype}</span></td>
+ <td>${p.client}</td><td class="num">${p.fte} / ${p.sub}</td>
+ <td><b>${p.qreS}%</b> / ${p.qreW}%</td><td>${pill(p.elig)}</td>
+ <td>${p.risk==="—"?"—":p.risk==="eligible"?'<span class="pill ok">risk: claimant ✓</span>':p.risk==="excluded_funded"?'<span class="pill err">funded — excluded</span>':'<span class="pill warn">needs review</span>'}</td>
+ <td>${p.poc}</td></tr>`).join("")}
+ </tbody></table>
+ <div class="note w" style="margin-top:10px"><b>Contract-risk analysis:</b> Voice Biometrics (T&M, TeleSure) — SOW-097 shows customer bears financial risk & retains rights → <b>funded research, excluded</b> (clauses AI-extracted from the SOW, TC-verified). Atlas (T&M with Cap) — risk shifts at the cap → <b>needs review</b>, blocking "eligible".</div>`;
+ if(rndTab==="qre")return qreGrid(C);
+ if(rndTab==="ai")return aiTab(C);
+ if(rndTab==="evidence")return `
+ <div class="ph-row"><div class="readiness" style="width:280px"><span style="font-size:12px;font-weight:600">Readiness</span><div class="rbar"><i style="width:78%;background:var(--warn)"></i></div><b>78%</b></div><span class="pill ok">Contemporaneous 71%</span><span style="flex:1"></span><button class="btn" onclick="toast('Upload → ClamAV scan → hash-on-ingest → promote to evidence')">＋ Upload</button></div>
+ <table class="lv"><thead><tr><th>Requirement (materialized per filing)</th><th>Status</th><th>Strength</th><th>Backing items</th></tr></thead><tbody>
+ ${C.evidence.map(e=>`<tr><td>${e.req}</td><td>${pill(e.status)}</td><td>${e.strength}</td><td style="font-size:11.5px;color:var(--text-secondary)">${e.items}</td></tr>`).join("")}</tbody></table>
+ <div class="gate" style="margin-top:12px">⛔ Finalization gate: 2 partial requirements — prior-year 2022 support + 4 reconstructed time allocations. Critical unsatisfied requirements block filing.</div>`;
+ if(rndTab==="fin")return finTab(C);
+ if(rndTab==="forms")return `
+ <div class="ph-row">${filingSeg(C,rndFiling,"setRndFiling")}</div>
+ <table class="lv"><thead><tr><th>Form</th><th>Filing</th><th>Status</th><th></th></tr></thead><tbody>
+ ${C.forms.map(f=>`<tr><td class="link">${f.name}</td><td>${f.filing}</td><td>${pill(f.status.includes("Draft")?"stale":"pending")} <span style="font-size:11px;color:var(--text-muted)">${f.status}</span></td><td><button class="btn sm" onclick="formPreview()">Preview</button></td></tr>`).join("")}</tbody></table>
+ <div class="note">Draft = pixel-faithful HTML preview. Final = hashed PDF via pinned Chromium + MeF e-file payload. Finals re-render byte-identically, forever.</div>`;
+ if(rndTab==="dossier")return dossierTab(C.dossier,"rnd");
+ if(rndTab==="tasks")return tasksTab(C.tasks);
+ if(rndTab==="settings")return `
+ ${sec("Case processing parameters",`<table class="lv"><thead><tr><th>Setting</th><th>Value</th><th>Source</th></tr></thead><tbody>
+ <tr><td>Authoritative roll-up</td><td><b>Simple average</b> (cost-weighted always shown)</td><td><span class="pill info">inherited · Tenant</span></td></tr>
+ <tr><td>Follow-up policy</td><td>confidence &lt; 0.75 or gaps → follow-up · max 3 rounds</td><td><span class="pill n">set here</span></td></tr>
+ <tr><td>Scheduled assessment</td><td>Nightly 02:00 (idempotent — no-ops unchanged projects)</td><td><span class="pill n">set here</span></td></tr>
+ </tbody></table>`)}
+ ${sec("Case-level financial inputs (cartridge-declared — US Federal ASC)",`<table class="lv"><thead><tr><th>Input</th><th>Value</th><th>Source</th></tr></thead><tbody>
+ ${C.caseInputs.map(i=>`<tr><td>${i.k}</td><td><b>${i.v}</b></td><td><span class="pill ${i.src==='prior_year'?'info':'n'}">${i.src.replace("_"," ")}</span></td></tr>`).join("")}
+ </tbody></table><div class="note">A UK case renders overheads / pension / NIC inputs here instead — same screen, cartridge config, zero code difference. Values pin into the computation snapshot.</div>`)}`;
+ if(rndTab==="timeline")return C.timeline.map(t=>`<div class="tl-item"><div class="tl-dot"></div><div><b>${t.who}</b> ${t.what} <span class="chan">${t.chan}</span><div class="tl-meta">${t.when} · ${t.detail}</div></div></div>`).join("")+`<div class="note">Every mutation carries the universal audit envelope: who · what · when · <b>how (channel)</b> · where-from · why.</div>`;
+ return ""}
+/* ---- QRE GRID ---- */
+function setRollup(m){rollup=m;render()}
+function qreGrid(C){const rs=S.resources;
+ const avg=Math.round(rs.reduce((a,r)=>a+r.pct,0)/rs.length);
+ return `
+ <div class="ph-row"><b>Helios — ML Demand Forecasting Engine</b><span class="pill ok">Eligible (Fed/CA/NY)</span><span style="flex:1"></span>
+ <span style="font-size:11.5px;color:var(--text-secondary)">Roll-up:</span><div class="seg"><button class="${rollup==='simple'?'on':''}" onclick="setRollup('simple')">Simple ${avg}%</button><button class="${rollup==='cw'?'on':''}" onclick="setRollup('cw')">Cost-weighted 79%</button></div>
+ <button class="btn" onclick="waterfill()">⇅ Redistribute to target…</button></div>
+ <table class="lv"><thead><tr><th>Resource</th><th>Type</th><th>Role · Skill · Exp</th><th class="num">Hours</th><th class="num">Cost</th><th>Location</th><th class="num">QRE%</th><th>Source</th><th></th></tr></thead><tbody>
+ ${rs.map(r=>`<tr><td><b>${r.name}</b></td><td><span class="pill ${r.type==='FTE'?'n':'info'}">${r.type}</span></td><td style="font-size:11.5px">${r.role}<div style="color:var(--text-muted)">${r.skill} · ${r.exp}</div></td><td class="num">${r.hours}</td><td class="num">${r.cost}</td><td>${r.loc}</td>
+ <td class="num" style="font-size:14px;font-weight:600">${r.pct}%</td><td>${srcBadge(r.src)} ${r.locked?'<span class="pill lock">🔒 locked</span>':''}</td>
+ <td>${r.locked?`<button class="btn sm" onclick="unlockRes('${r.id}')">Unlock</button>`:`<button class="btn sm" onclick="adjustRes('${r.id}')">Adjust</button>`}</td></tr>`).join("")}
+ </tbody></table>
+ <div class="note">Every write is clamped 0–100 and lands as a <b>QREAdjustment</b> with a mandatory comment — manual, AI-accept, redistribution, bulk, or ingestion alike. Locks survive recompute; unlock is profile-gated.</div>
+ ${sec("Adjustment history (audit trail)",`<table class="lv"><thead><tr><th>When</th><th>Who</th><th>Change</th><th>Method · Channel</th><th>Comment</th></tr></thead><tbody>
+ ${C.adjustments.map(a=>`<tr><td style="white-space:nowrap">${a.when}</td><td>${a.who}</td><td>${a.what}</td><td><span class="pill n">${a.method}</span> <span class="chan">${a.channel}</span></td><td style="font-size:11.5px;color:var(--text-secondary)">${a.comment}</td></tr>`).join("")}</tbody></table>`,false)}`}
+function adjustRes(id){const r=S.resources.find(x=>x.id===id);
+ openModal(`<div class="modal-h">Adjust QRE% — ${r.name} <button onclick="closeModal()">✕</button></div><div class="modal-b">
+ <div class="fld"><label>Current value</label><input value="${r.pct}%" disabled></div>
+ <div class="fld"><label>New QRE% (0–100 enforced)</label><input id="adj-v" type="number" min="0" max="100" value="${Math.min(100,r.pct+5)}"></div>
+ <div class="fld"><label>Comment (mandatory)</label><textarea id="adj-c" placeholder="Why is this value changing? Required for the audit trail…"></textarea></div>
+ <div class="note">Writes as QREAdjustment(method=manual) → value locks 🔒 · Timeline event · dossier-visible.</div></div>
+ <div class="modal-f"><button class="btn" onclick="closeModal()">Cancel</button><button class="btn pri" onclick="applyAdj('${id}')">Apply adjustment</button></div>`)}
+function applyAdj(id){const v=parseFloat($("#adj-v").value),c=$("#adj-c").value.trim();
+ if(!c){$("#adj-c").style.borderColor="var(--err)";toast("Comment is mandatory — guarded field");return}
+ if(v<0||v>100){toast("Clamped: 0 ≤ QRE% ≤ 100 — hard invariant");return}
+ const r=S.resources.find(x=>x.id===id);S.rndCase.adjustments.unshift({when:"Just now",who:"John Doe (PSC Lead)",what:`${r.name} qre_pct ${r.pct} → ${v}`,method:"manual",channel:"UI",comment:c});r.pct=v;r.src="manual";r.locked=true;closeModal();render();toast("QREAdjustment recorded · value locked 🔒")}
+function unlockRes(id){const r=S.resources.find(x=>x.id===id);
+ openModal(`<div class="modal-h">Unlock — ${r.name} <button onclick="closeModal()">✕</button></div><div class="modal-b"><div class="note w">Unlock is restricted to CFA / PSC / PSC Lead / TC (+FC for financial fields). You are <b>PSC Lead</b> — permitted.</div><div class="fld"><label>Reason (mandatory)</label><textarea id="ul-c"></textarea></div></div><div class="modal-f"><button class="btn" onclick="closeModal()">Cancel</button><button class="btn pri" onclick="if(!document.getElementById('ul-c').value.trim()){toast('Comment mandatory')}else{S.resources.find(x=>x.id==='${id}').locked=false;S.rndCase.adjustments.unshift({when:'Just now',who:'John Doe (PSC Lead)',what:'${r.name} lock released',method:'unlock',channel:'UI',comment:document.getElementById('ul-c').value});closeModal();render();toast('Lock released · QREAdjustment(method=unlock)')}">Unlock</button></div>`)}
+function waterfill(){openModal(`<div class="modal-h">Redistribute to project target <button onclick="closeModal()">✕</button></div><div class="modal-b">
+ <div class="fld"><label>Target project QRE% (authoritative = simple avg)</label><input id="wf-t" type="number" value="78"></div>
+ <div class="note">Water-filling: locked resources (🔒 Vasquez 95%) held fixed · budget spreads over unlocked by weightage · iterative clamp to [0,100] · <b>infeasible targets are flagged, never truncated</b>.</div>
+ <div class="fld"><label>Batch comment (mandatory — one QREAdjustment per changed row)</label><textarea id="wf-c">Redistribution to agreed project target after technical review.</textarea></div></div>
+ <div class="modal-f"><button class="btn" onclick="closeModal()">Cancel</button><button class="btn pri" onclick="const t=parseFloat(document.getElementById('wf-t').value);if(t>92){toast('⚠ INFEASIBLE — locked values + 100% ceiling cannot reach '+t+'% (flagged, no write)');}else{closeModal();toast('Water-fill applied — 4 QREAdjustments(method=redistributed) recorded');}">Preview & apply</button></div>`)}
+/* ---- AI TAB ---- */
+function aiTab(C){return `
+ <div class="grid3" style="margin-bottom:14px">
+ <div class="card"><div class="card-h">🤖 QRE Assessor <span class="exp">Engine 2</span></div><div class="card-b">
+ <div style="font-size:12px;margin-bottom:8px">1 open proposal: <b>Edge CDN 76% → 81%</b> <span class="pill info">confidence 0.83</span></div>
+ <div style="font-size:11.5px;color:var(--text-secondary);margin-bottom:8px">Signals: 412 commits tagged experimental, 3 spike docs, worklog share ↑</div>
+ <button class="btn sm pri" onclick="openModal(aiAcceptModal())">Review proposal</button></div></div>
+ <div class="card"><div class="card-h">📝 Technical Summary <span class="exp">Engine 1 · versioned</span></div><div class="card-b">
+ ${C.summaryVersions.map(v=>`<div style="display:flex;gap:8px;align-items:center;margin-bottom:6px;font-size:11.5px"><span class="pill ${v.status==='approved'?'ok':'n'}">v${v.v}</span><span>${v.origin.replace("_"," ")} · ${v.who}</span><span style="color:var(--text-muted)">${v.when}</span></div>`).join("")}
+ <button class="btn sm" onclick="openModal(diffModal())">View v4 → v5 diff</button> <button class="btn sm" onclick="toast('Prompt-refine: give the engine an instruction — new draft version created, approved version untouched')">✨ Prompt-refine</button></div></div>
+ <div class="card"><div class="card-h">💬 Interaction Agent <span class="exp">Engine 3</span></div><div class="card-b">
+ <div style="font-size:12px;margin-bottom:8px">Wave 2 ready: <b>1 unsent</b> · 1 follow-up queued</div>
+ <div style="font-size:11.5px;color:var(--text-secondary);margin-bottom:8px">Generate and send are separate permissions — nothing reaches a client unreviewed.</div>
+ <button class="btn sm pri" onclick="sendCampaign()">Review & send campaign</button></div></div></div>
+ ${sec("Interactions by project",`<table class="lv"><thead><tr><th>Project</th><th>PoC</th><th>Status</th><th>Answered</th><th>Follow-up</th><th>Last activity</th><th></th></tr></thead><tbody>
+ ${C.interactions.map(i=>`<tr><td>${i.p}</td><td>${i.poc}</td><td>${pill(i.status==="Completed"?"satisfied":i.status.includes("Progress")?"partial":i.status==="Sent"?"pending":"stale")} <span style="font-size:11px;color:var(--text-muted)">${i.status}</span></td><td>${i.answered}/${i.total}</td><td>${i.followup}</td><td>${i.last}</td><td>${i.status.includes("unsent")?`<button class="btn sm" onclick="sendCampaign()">Send</button>`:""}</td></tr>`).join("")}</tbody></table>
+ <div class="note">Response submission event-drives regeneration: new summary draft + updated QRE proposal + follow-up (per FollowUpPolicy) — all as reviewable drafts.</div>`)}
+ ${sec("Deep-dive interviews (key projects)",`<div class="card"><div class="card-b" style="display:flex;gap:12px;align-items:center;flex-wrap:wrap"><span>⭐ <b>Helios team deep-dive</b> — requested by Wei Chen (TC) · scheduled Aug 13, 15:00</span><span class="pill info">live_session</span><span style="flex:1"></span><button class="btn sm" onclick="toast('Transcript will be promoted to contemporaneous-tagged evidence')">Details</button></div></div>`)}`}
+function aiAcceptModal(){return `<div class="modal-h">QRE Assessor proposal — Edge CDN Optimization <button onclick="closeModal()">✕</button></div><div class="modal-b">
+ <table class="lv"><thead><tr><th>Resource</th><th class="num">Current</th><th class="num">Proposed</th><th>Basis</th></tr></thead><tbody>
+ <tr><td>Marcus Webb</td><td class="num">72%</td><td class="num"><b>78%</b></td><td style="font-size:11px">commit share ↑, spike docs</td></tr>
+ <tr><td>Yuki Tanaka</td><td class="num">80%</td><td class="num"><b>84%</b></td><td style="font-size:11px">experimental worklogs</td></tr></tbody></table>
+ <div class="fld" style="margin-top:10px"><label>Comment (mandatory — accept writes live values via QREAdjustment(method=ai_accept))</label><textarea id="ai-c">Signals reviewed; consistent with interview responses.</textarea></div>
+ <div class="note">No shadow proposal layer — accept writes the live field through the audited adjustment path. Reject/supersede also tracked.</div></div>
+ <div class="modal-f"><button class="btn" onclick="closeModal();toast('Proposal rejected — recorded on AIReview')">Reject</button><button class="btn pri" onclick="closeModal();toast('Accepted · 2 QREAdjustments(method=ai_accept) · grid updated')">Accept proposal</button></div>`}
+function diffModal(){return `<div class="modal-h">Technical Summary — v4 → v5 diff <button onclick="closeModal()">✕</button></div><div class="modal-b" style="font-size:12.5px;line-height:1.7">
+ <p>The Helios initiative sought to resolve <span class="diffdel">significant uncertainty</span><span class="diffadd">four distinct areas of technological uncertainty</span> in probabilistic demand forecasting at retail-item granularity…</p>
+ <p><span class="diffadd">§1.3 Alternatives evaluated: the team ran controlled experiments across gradient-boosted ensembles, temporal-fusion transformers, and a hybrid hierarchical model, rejecting the first two on interval-calibration failures (see experiment log EXP-114…EXP-131).</span></p>
+ <p style="color:var(--text-muted);font-size:11px">Every claim span carries a citation → commit / doc / interview answer. Approved v5 is what the dossier packages.</p></div>
+ <div class="modal-f"><button class="btn" onclick="closeModal()">Close</button><button class="btn pri" onclick="closeModal();toast('v5 approved — binds this version; later drafts never overwrite it')">Approve v5</button></div>`}
+/* ---- FIN TAB ---- */
+function finTab(C){const f=C.financial;return `
+ <div class="ph-row">${filingSeg(C,rndFiling,"setRndFiling")}<span class="pill n">US Federal — ASC method · §280C reduced</span></div>
+ <div class="grid2">
+ <div class="card"><div class="card-h">Financial working — auditable DAG</div><div class="card-b">
+ <table class="lv"><tbody>
+ <tr><td>Qualifying wages</td><td class="num prov" onclick="openProv('credit')">${f.wages}</td></tr>
+ <tr><td>Supplies</td><td class="num">${f.supplies}</td></tr>
+ <tr><td>Contract research (×65%)</td><td class="num">${f.contract}</td></tr>
+ <tr><td>Cloud computing</td><td class="num">${f.cloud}</td></tr>
+ <tr><td><b>Current-year QRE</b></td><td class="num"><b class="prov" onclick="openProv('credit')">${f.qre}</b></td></tr>
+ <tr><td>Prior-3-year average (case inputs)</td><td class="num">${f.prior3}</td></tr>
+ <tr><td>Base (×50%)</td><td class="num">${f.base}</td></tr>
+ <tr><td>Excess QRE</td><td class="num">${f.excess}</td></tr>
+ <tr><td><b>Gross credit (×${f.rate})</b></td><td class="num"><b class="prov" onclick="openProv('credit')">${f.gross}</b></td></tr>
+ </tbody></table><div class="note">Click any figure → provenance (inputs, parameter versions, node path). Finalization pins the snapshot.</div></div></div>
+ <div class="card"><div class="card-h">Scenario comparison</div><div class="card-b">
+ <table class="lv"><thead><tr><th>Scenario</th><th class="num">Net credit</th><th></th></tr></thead><tbody>
+ <tr><td>ASC + §280C reduced <span class="pill ok">recommended</span></td><td class="num"><b>$1,402,707</b></td><td>✓ elected</td></tr>
+ <tr><td>ASC, no §280C</td><td class="num">$1,289,340*</td><td style="font-size:11px;color:var(--text-muted)">*after addback</td></tr>
+ <tr><td>Regular method</td><td class="num">$1,118,220</td><td style="font-size:11px;color:var(--text-muted)">base-period constrained</td></tr>
+ </tbody></table><div class="note">All scenarios computed in parallel from the same inputs — explainable side-by-side.</div>
+ <div class="gate" style="margin-top:10px">⛔ FC approval gate: blocked by 2 evidence gaps (see Evidence tab)</div></div></div></div>`}
+/* ---- FORM PREVIEW ---- */
+function formPreview(){openModal(`<div class="modal-h">Form 6765 — HTML preview (draft) <button onclick="closeModal()">✕</button></div><div class="modal-b">
+ <div style="border:1px solid var(--border-strong);border-radius:6px;padding:18px;font-family:'Times New Roman',serif;background:#fff;color:#000;position:relative;overflow:hidden">
+ <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:54px;color:rgba(185,28,28,.12);transform:rotate(-24deg);font-weight:600;pointer-events:none">DRAFT</div>
+ <div style="display:flex;justify-content:space-between;border-bottom:2px solid #000;padding-bottom:4px"><b>Form 6765</b><span>Credit for Increasing Research Activities</span><span>2025</span></div>
+ <table style="width:100%;font-size:11px;margin-top:8px;border-collapse:collapse">
+ <tr><td style="border:1px solid #999;padding:3px">Section B — Alternative Simplified Credit</td><td style="border:1px solid #999;padding:3px;text-align:right"></td></tr>
+ <tr><td style="border:1px solid #999;padding:3px">42. Total qualified research expenses</td><td style="border:1px solid #999;padding:3px;text-align:right">16,086,000</td></tr>
+ <tr><td style="border:1px solid #999;padding:3px">43. Average prior 3 years QRE</td><td style="border:1px solid #999;padding:3px;text-align:right">12,133,333</td></tr>
+ <tr><td style="border:1px solid #999;padding:3px">44. 50% of line 43</td><td style="border:1px solid #999;padding:3px;text-align:right">6,066,667</td></tr>
+ <tr><td style="border:1px solid #999;padding:3px">45. Subtract line 44 from 42</td><td style="border:1px solid #999;padding:3px;text-align:right">10,019,333</td></tr>
+ <tr><td style="border:1px solid #999;padding:3px"><b>46. Multiply line 45 by 14%</b></td><td style="border:1px solid #999;padding:3px;text-align:right"><b>1,402,707</b></td></tr></table>
+ </div><div class="note">Slots filled from the ComputationRun via FormFieldMapping. Finalize → hashed PDF (pinned Chromium) + MeF e-file payload.</div></div>
+ <div class="modal-f"><button class="btn" onclick="closeModal()">Close</button><button class="btn pri" onclick="closeModal();toast('Blocked: FC approval gate must clear before finalization')">Finalize → PDF + e-file</button></div>`)}
+/* ---- DOSSIER / TASKS (shared) ---- */
+function dossierTab(items,kind){return `
+ <div class="ph-row"><b>Client-deliverable dossier</b><span class="pill n">v3 draft</span><span style="flex:1"></span><button class="btn pri" onclick="buildDossier()">📦 Generate dossier ZIP</button></div>
+ <table class="lv"><thead><tr><th>Component (manifest-driven)</th><th>Status</th></tr></thead><tbody>
+ ${items.map(d=>`<tr><td>${d.c}</td><td>${pill(d.s)}</td></tr>`).join("")}</tbody></table>
+ <div class="note">Manifest is cartridge config (${kind==="rnd"?"R&D: 6 components":"Film: 8 incl. CPA attestation + monetization"}). FINAL = immutable ZIP, hashed, snapshot-pinned, reproducible; stale components flagged on drafts.</div>`}
+function buildDossier(){toast("Dossier build queued as BackgroundJob…");let p=0;S.jobs.unshift({n:"Dossier build — "+(route==="film"?"CASE-2025-0198":"CASE-2025-0142"),s:"completed",pct:0,stat:"assembling…",when:"Just now"});
+ const j=S.jobs[0];const iv=setInterval(()=>{p+=25;j.pct=p;j.stat=p<100?`${Math.round(p/17)}/6 components`:"6/6 components · hashed";renderDrawers();if(p>=100){clearInterval(iv);S.notifications.unshift({t:"Dossier generated",m:"6/6 components assembled · zip hashed · snapshot-pinned. Ready for client handover.",d:"Just now",unread:true});$("#ntf-badge").style.display="flex";$("#ntf-badge").textContent="1";renderDrawers();toast("✅ Dossier ready — completion notification sent (in-app + push)")}},600)}
+function tasksTab(T){return `
+ <div class="ph-row"><div class="seg"><button class="${taskView==='kanban'?'on':''}" onclick="taskView='kanban';render()">Kanban</button><button class="${taskView==='list'?'on':''}" onclick="taskView='list';render()">Task list</button></div><span class="pill n">playbook-materialized · assignment rules</span><span style="flex:1"></span><button class="btn sm">＋ Ad-hoc task</button></div>
+ ${taskView==="kanban"?`<div class="kb">${T.lanes.map((l,i)=>`<div class="kb-lane ${T.cards.some(c=>c.lane===i&&c.pill==='err')?'gated':''}"><div class="kb-lh">${l}<span>${T.cards.filter(c=>c.lane===i).length}</span></div>${T.cards.filter(c=>c.lane===i).map(c=>`<div class="kb-card"><div class="kt">${c.t}</div><div class="km"><span class="pill ${c.pill}">${c.due}</span><span class="avatar" style="width:20px;height:20px;font-size:9px">${c.who}</span></div></div>`).join("")}</div>`).join("")}</div><div class="note">Dashed lanes = blocked by a phase gate (dependencies / attestation / approval). Drag-to-advance in the full product.</div>`
+ :`<table class="lv"><thead><tr><th>Task</th><th>Phase</th><th>Due / State</th><th>Assignee</th></tr></thead><tbody>${T.cards.map(c=>`<tr><td>${c.t}</td><td>${T.lanes[c.lane]}</td><td><span class="pill ${c.pill}">${c.due}</span></td><td>${c.who}</td></tr>`).join("")}</tbody></table>`}`}
+/* ---- ASSESSMENT RUN + CAMPAIGN SIM ---- */
+function runAssessment(){openModal(`<div class="modal-h">Run R&D Assessment <button onclick="closeModal()">✕</button></div><div class="modal-b">
+ <div class="fld"><label>Scope</label><select><option>Case — all 6 associated projects</option><option>Single project…</option></select></div>
+ <div class="note">Per project: potential QRE% · technical summary draft · per-jurisdiction eligibility (Fed/CA/NY) · draft interaction · contract-risk. Idempotent — unchanged projects no-op. All outputs land as reviewable drafts.</div></div>
+ <div class="modal-f"><button class="btn" onclick="closeModal()">Cancel</button><button class="btn pri" onclick="closeModal();simRun()">▶ Run now (202 → BackgroundJob)</button></div>`)}
+function simRun(){toast("AssessmentRun #13 queued…");S.jobs.unshift({n:"AssessmentRun #13 — CASE-2025-0142 (6 projects)",s:"completed",pct:0,stat:"starting…",when:"Just now"});const j=S.jobs[0];$("#jobs-badge").style.display="flex";$("#jobs-badge").textContent="1";let p=0;
+ const iv=setInterval(()=>{p+=17;j.pct=Math.min(100,p);j.stat=p<100?`${Math.min(6,Math.ceil(p/17))}/6 projects · summaries + eligibility + interactions`:"4 assessed · 2 no-op (unchanged) · 0 failed";renderDrawers();if(p>=100){clearInterval(iv);$("#jobs-badge").style.display="none";S.notifications.unshift({t:"AssessmentRun #13 completed",m:"4 projects assessed · 2 no-op'd (inputs unchanged) · 3 summary drafts · 1 QRE proposal · 2 draft interactions. All queued for review.",d:"Just now · CASE-2025-0142",unread:true});$("#ntf-badge").style.display="flex";$("#ntf-badge").textContent="1";renderDrawers();toast("✅ AssessmentRun complete — statistics notification delivered")}},700)}
+function sendCampaign(){openModal(`<div class="modal-h">Send interaction campaign — wave 2 <button onclick="closeModal()">✕</button></div><div class="modal-b">
+ <table class="lv"><thead><tr><th></th><th>Project</th><th>PoC</th><th>Questions</th></tr></thead><tbody>
+ <tr><td><input type="checkbox" checked></td><td>Edge CDN Optimization</td><td>Marcus Webb</td><td>6 (jurisdiction script v3 + tenant overlay)</td></tr>
+ <tr><td><input type="checkbox" checked></td><td>Atlas — follow-up (round 2/3)</td><td>Jenna Ortiz</td><td>3 gap questions</td></tr></tbody></table>
+ <div class="note">Respondents authenticate by OTP to the project email. Generate and send are separate permissions — you hold both (PSC Lead).</div></div>
+ <div class="modal-f"><button class="btn" onclick="closeModal()">Cancel</button><button class="btn pri" onclick="closeModal();toast('Campaign sent — 2 interactions dispatched · OTP links emailed · Timeline event');setTimeout(()=>{S.notifications.unshift({t:'Interaction response received — Edge CDN',m:'Marcus Webb answered 6/6 in 4 min. Summary draft v2 regenerated · QRE proposal updated · no follow-up needed (confidence 0.88).',d:'Just now · simulated PoC response',unread:true});document.getElementById('ntf-badge').style.display='flex';document.getElementById('ntf-badge').textContent='1';renderDrawers();toast('📥 PoC responded — artifacts regenerated as drafts (event-driven)')},5000)">Send campaign</button></div>`)}
+</script>
+<script>
+/* =================== FILM CASE =================== */
+const FT=[["overview","Overview"],["filings","Filings"],["production","Production & Phases"],["personnel","Personnel & Labour"],["spend","Qualified Spend"],["cpa","CPA & Certification"],["mon","Monetization"],["dossier","Dossier"],["tasks","Tasks"],["timeline","Timeline"]];
+function setFilmTab(t){filmTab=t;render()}
+function setFilmFiling(f){filmFiling=f;render()}
+function filmScreen(){const C=S.filmCase;return `
+<div class="pane-h"><div class="crumbs"><a href="#" onclick="go('accounts');return false">Aurora Pictures Group</a> › Aurora Pictures LLC › <b>${C.id}</b></div>
+<div class="ph-row"><div class="ph-title">${ic("clapper",20)} ${C.production} — ${C.fy}</div><span class="pill warn">${C.status}</span><span class="pill n">GA + NY (1 case · 2 filings)</span>
+<div class="readiness" style="width:170px"><div class="rbar"><i style="width:${C.readiness}%;background:var(--ok)"></i></div><b>${C.readiness}%</b></div>
+<span style="flex:1"></span><button class="btn pri" onclick="runAssessment()">${ic("play",13)} Run Assessment</button><button class="btn" onclick="toast('Export → branded PDF')">⬇ Export PDF</button></div></div>
+<div class="tabs">${FT.map(t=>`<button class="tab ${filmTab===t[0]?'on':''}" onclick="setFilmTab('${t[0]}')">${t[1]}</button>`).join("")}</div>
+<div class="body-scroll">${filmTabBody(C)}</div>`}
+function filmTabBody(C){const F=C.filings.find(f=>f.id===filmFiling);
+ if(filmTab==="overview")return `
+ <div class="grid4" style="margin-bottom:14px">
+ <div class="tile"><div class="tl">Estimated credits (GA + NY)</div><div class="tv">$6.94M</div><div class="td">GA $5.11M transferable · NY $1.83M refundable</div></div>
+ <div class="tile"><div class="tl">Qualified spend</div><div class="tv">$23.1M</div><div class="td">of $26.6M total budget</div></div>
+ <div class="tile"><div class="tl">Certification gate</div><div class="tv" style="font-size:15px">CPA AUP</div><div class="td">${attested?'<span class="up">signed ✓</span>':'awaiting signature'}</div></div>
+ <div class="tile"><div class="tl">Monetization path</div><div class="tv" style="font-size:15px">Transfer (GA)</div><div class="td">LOI @ 92¢/$ · Concordia</div></div></div>
+ ${sec("Two authoritative computations (film lifecycle)",`<table class="lv"><thead><tr><th>Computation</th><th>When</th><th class="num">GA credit</th><th>Snapshot</th></tr></thead><tbody>
+ <tr><td><b>Provisional</b> — at application</td><td>Jul 30, 2025</td><td class="num">$5,110,000 (projected)</td><td><span class="pill ok">pinned #1</span></td></tr>
+ <tr><td><b>Final</b> — at certification</td><td>pending CPA gate</td><td class="num">—</td><td><span class="pill n">snapshot #2 on certify</span></td></tr>
+ </tbody></table><div class="note">Each computation snapshots independently — the provisional never gets recomputed away.</div>`)}
+ ${sec("Program filings",`<table class="lv"><thead><tr><th>Filing</th><th>Lifecycle</th><th class="num">Qualified spend</th><th class="num">Est. credit</th><th>Structure</th></tr></thead><tbody>
+ ${C.filings.map(f=>`<tr onclick="filmFiling='${f.id}';setFilmTab('filings')"><td class="link">${f.name}</td><td><span class="pill warn">${f.state.replace(/_/g," ")}</span></td><td class="num">${f.spend}</td><td class="num">${f.credit}</td><td style="font-size:11.5px">${f.cap}</td></tr>`).join("")}</tbody></table>`)}`;
+ if(filmTab==="filings")return `
+ <div class="ph-row">${filingSeg(C,filmFiling,"setFilmFiling")}</div>
+ <div class="grid3" style="margin:12px 0">
+ <div class="tile"><div class="tl">${F.name}</div><div class="tv">${F.credit}</div><div class="td prov" onclick="openProv('credit')">provenance ↗</div></div>
+ <div class="tile"><div class="tl">Qualified spend</div><div class="tv">${F.spend}</div><div class="td">${F.cap}</div></div>
+ <div class="tile"><div class="tl">Authority track</div><div class="tv" style="font-size:14px">${F.id==="g-ga"?"GA DECD certification":"NY Film Office · reservation ✓"}</div><div class="td">submission-ready packages</div></div></div>
+ ${F.id==="g-ga"?sec("Uplifts & caps (DAG nodes with provenance)",`<table class="lv"><thead><tr><th>Component</th><th class="num">Rate</th><th class="num">Amount</th></tr></thead><tbody>
+ <tr><td>Base credit (in-state qualified spend)</td><td class="num">20%</td><td class="num">$3,406,800</td></tr>
+ <tr><td>GA promotional logo uplift <span class="pill warn">eligibility under review</span></td><td class="num">+10%</td><td class="num">$1,703,400</td></tr>
+ <tr><td><b>Total (uncapped program)</b></td><td class="num">30%</td><td class="num"><b>$5,110,200</b></td></tr>
+ </tbody></table><div class="note">Every applied uplift = an UpliftApplied record on the ComputationRun; caps flag visibly, never truncate silently.</div>`)
+ :sec("NY allocation reservation",`<div class="card"><div class="card-b"><span class="pill ok">Reservation #NY-25-0441 · $1.9M allocated · expires Dec 2025</span><div class="note" style="margin-top:8px">Capped/allocated program — reservation secured before spend; certification draws against it.</div></div></div>`)}`;
+ if(filmTab==="production")return `
+ ${sec("Production phases",`<table class="lv"><thead><tr><th>Phase</th><th>Location</th><th>Dates</th><th class="num">Spend</th><th>In-state</th></tr></thead><tbody>
+ ${C.phases.map(p=>`<tr><td><b>${p.ph}</b></td><td>${p.loc}</td><td>${p.dates}</td><td class="num">${p.spend}</td><td>${p.inState==="—"?'<span class="pill n">—</span>':`<span class="pill ok">${p.inState}</span>`}</td></tr>`).join("")}</tbody></table>
+ <div class="note">Phase locations auto-derive territory + drive program applicability (GA + NY filings under one case).</div>`)}
+ ${sec("Chain of title & supplementary evidence",`<table class="lv"><tbody>
+ <tr><td>Chain of title</td><td><span class="pill ok">Verified</span></td><td style="font-size:11.5px;color:var(--text-secondary)">option agreement + writer assignments ×3</td></tr>
+ <tr><td>Call sheets (nexus signals)</td><td><span class="pill ok">96 ingested</span></td><td style="font-size:11.5px;color:var(--text-secondary)">feed in-state day-count attribution</td></tr>
+ <tr><td>Location agreements</td><td><span class="pill ok">14 on file</span></td><td style="font-size:11.5px;color:var(--text-secondary)">Savannah, Brunswick, Buffalo</td></tr></tbody></table>`,false)}`;
+ if(filmTab==="personnel")return `
+ <div class="lc"><span class="chip on">All</span><span class="chip">ATL</span><span class="chip">BTL</span><span class="chip">Loan-outs (6)</span><span class="chip">⚠ Verification gaps (7)</span><span class="sp"></span><input placeholder="Search personnel…"><button class="chip">☰ Columns</button></div>
+ <table class="lv"><thead><tr><th>Personnel</th><th>Line</th><th>Role</th><th>Residency</th><th>Loan-out</th><th class="num">Qualifying %</th><th></th></tr></thead><tbody>
+ ${C.personnel.map(p=>`<tr><td><b>${p.name}</b>${p.flag?`<div style="font-size:10.5px;color:var(--err)">${p.flag}</div>`:""}</td><td><span class="pill ${p.line==='ATL'?'info':'n'}">${p.line}</span></td><td>${p.res.includes("✓")?`<span class="pill ok">${p.res}</span>`:p.res.includes("31/38")?`<span class="pill warn">${p.res}</span>`:`<span class="pill n">${p.res}</span>`}</td><td>${p.role}</td><td style="font-size:11.5px">${p.loan}</td><td class="num" style="font-weight:600">${p.pct}%</td><td>${p.locked?'<span class="pill lock">🔒</span>':""}</td></tr>`).join("")}</tbody></table>
+ <div class="note w">⚠ NY unit: 7 residency certifications outstanding (due Aug 12) — affected labour excluded from NY qualified spend until evidence cures. Loan-outs verified for registration + withholding.</div>`;
+ if(filmTab==="spend")return `
+ <div class="ph-row"><b>Qualified spend lines</b><span class="pill n">4,211 lines · grouped by category</span><span style="flex:1"></span>
+ <div class="seg"><button class="on">Simple avg</button><button onclick="toast('Cost-weighted roll-up always computed alongside — same parity as R&D')">Cost-weighted</button></div></div>
+ <table class="lv"><thead><tr><th>Category</th><th class="num">Amount</th><th class="num">Qualifying %</th><th>Source</th><th></th></tr></thead><tbody>
+ ${C.spend.map((s,i)=>`<tr><td>${s.cat}</td><td class="num">${s.amt}</td><td class="num" style="font-weight:600">${s.pct}%</td><td>${srcBadge(s.src)} ${s.locked?'<span class="pill lock">🔒 locked</span>':""}</td><td><button class="btn sm" onclick="toast('SpendAdjustment — same guarded path as QRE: mandatory comment, 0–100 clamp, lock')">Adjust</button></td></tr>`).join("")}</tbody></table>
+ <div class="note">Mirror of the R&D grid: every qualifying% write = <b>SpendAdjustment</b> (comment, clamp, lock). Domain parity by construction.</div>`;
+ if(filmTab==="cpa")return `
+ <div class="grid2">
+ <div class="card"><div class="card-h">CPA AUP Attestation — certification gate</div><div class="card-b">
+ <table class="lv"><tbody>
+ <tr><td>Attestor</td><td><b>${C.attestation.cpa}</b> <span class="pill info">ExternalAttestor · OTP portal</span></td></tr>
+ <tr><td>Package</td><td>${C.attestation.package}</td></tr>
+ <tr><td>Status</td><td>${attested?'<span class="pill ok">SIGNED ✓ Aug 11</span>':'<span class="pill warn">awaiting signature</span>'}</td></tr>
+ <tr><td>Note</td><td style="font-size:11.5px;color:var(--text-secondary)">${C.attestation.note}</td></tr></tbody></table>
+ ${attested?"":`<button class="btn pri" style="margin-top:10px" onclick="attested=true;render();toast('AUP report signed & attached — certification gate OPEN')">✍ Simulate CPA signature (external portal)</button>`}</div></div>
+ <div class="card"><div class="card-h">Certification</div><div class="card-b">
+ <div class="gate ${attested?'pass':''}">${attested?"✅ Gate open — signed AUP attached. Ready to submit certification (final computation → snapshot #2 → CreditInstrument).":"⛔ LIFECYCLE GATE: filing cannot advance to certification until the signed CPA AUP report is attached. No profile bypasses this."}</div>
+ <button class="btn pri" style="margin-top:10px" ${attested?"":"disabled"} onclick="toast('Certification submitted — final ComputationRun snapshot #2 · CreditInstrument $5.11M created')">Submit GA certification</button></div></div></div>`;
+ if(filmTab==="mon"){const m=C.monetization;return `
+ <div class="grid3" style="margin-bottom:14px">
+ <div class="tile"><div class="tl">Outcome path (GA)</div><div class="tv" style="font-size:16px">${m.path}</div><div class="td">gated: PS.MonetizationDesk</div></div>
+ <div class="tile"><div class="tl">Instrument</div><div class="tv" style="font-size:16px">${m.instrument}</div><div class="td">${m.est}</div></div>
+ <div class="tile"><div class="tl">NY path</div><div class="tv" style="font-size:16px">Refundable</div><div class="td">no transfer — state refund</div></div></div>
+ ${sec("Transfer (Georgia)",`<table class="lv"><tbody>
+ <tr><td>Buyer</td><td><b>${m.buyer}</b></td></tr>
+ <tr><td>Broker</td><td>${m.broker}</td></tr>
+ <tr><td>Price</td><td><b>${m.discount}</b> → est. proceeds $4.70M</td></tr>
+ <tr><td>State registration</td><td><span class="pill n">on transfer execution</span></td></tr></tbody></table>
+ <button class="btn pri" style="margin-top:10px" onclick="toast('Blocked: transfer executes only after certification (CreditInstrument required)')">Execute transfer…</button>
+ <div class="note">Partial transfers supported; proceeds + discount tracked; buyer-side recapture risk carried on the instrument through audits.</div>`)}`}
+ if(filmTab==="dossier")return dossierTab(C.dossier,"film");
+ if(filmTab==="tasks")return tasksTab(C.tasks);
+ if(filmTab==="timeline")return C.timeline.map(t=>`<div class="tl-item"><div class="tl-dot"></div><div><b>${t.who}</b> ${t.what} <span class="chan">${t.chan}</span><div class="tl-meta">${t.when} · ${t.detail}</div></div></div>`).join("");
+ return ""}
+/* =================== DASHBOARDS =================== */
+function dashScreen(){return `
+<div class="pane-h"><div class="ph-row"><div class="ph-title">${ic("chart",20)} Firm Dashboards</div><span class="pill n">FY2025 · All territories · URL-addressable state</span><span style="flex:1"></span>
+<span class="chip on">FY2025</span><span class="chip">Territory: All ▾</span><span class="chip">Domain: All ▾</span><button class="btn" onclick="toast('Dashboard → PDF (branded)')">⬇ PDF</button></div></div>
+<div class="body-scroll">
+<div class="grid4" style="margin-bottom:14px">
+<div class="tile"><div class="tl">Pipeline credit value</div><div class="tv">$11.2M</div><div class="td"><span class="up">▲ 14%</span> vs FY2024</div></div>
+<div class="tile"><div class="tl">Cases in flight</div><div class="tv">23</div><div class="td">18 R&D · 5 film</div></div>
+<div class="tile"><div class="tl">Avg readiness</div><div class="tv">74%</div><div class="td">contemporaneous 68%</div></div>
+<div class="tile"><div class="tl">Claimed vs approved (closed FY24)</div><div class="tv">96.8%</div><div class="td">variance KPI · per filing</div></div></div>
+<div class="grid2">
+<div class="card"><div class="card-h">Credit value by jurisdiction <span class="exp">click a bar → filtered case list</span></div><div class="card-b"><div id="ch1" class="chart"></div></div></div>
+<div class="card"><div class="card-h">Case pipeline by stage</div><div class="card-b"><div id="ch2" class="chart"></div></div></div>
+<div class="card"><div class="card-h">QRE trend — Northwind (4 years)</div><div class="card-b"><div id="ch3" class="chart"></div></div></div>
+<div class="card"><div class="card-h">Film monetization outcomes</div><div class="card-b"><div id="ch4" class="chart"></div></div></div>
+</div></div>`}
+function cvar(n){return getComputedStyle(document.documentElement).getPropertyValue(n).trim()}
+let charts=[];
+function renderCharts(){if(route!=="dash")return;charts.forEach(c=>c.dispose());charts=[];
+ const tx=cvar("--text-secondary"),gr=cvar("--border"),c1=cvar("--c1"),c2=cvar("--c2"),c3=cvar("--c3"),c4=cvar("--c4");
+ const base={textStyle:{color:tx,fontSize:11},grid:{left:8,right:14,top:26,bottom:4,containLabel:true},tooltip:{trigger:"axis",backgroundColor:cvar("--bg-raised"),borderColor:gr,textStyle:{color:cvar("--text-primary"),fontSize:11}}};
+ const ax={axisLine:{lineStyle:{color:gr}},axisLabel:{color:tx,fontSize:10.5},splitLine:{lineStyle:{color:gr}}};
+ const mk=(id,opt)=>{const el=document.getElementById(id);if(!el)return;const c=echarts.init(el);c.setOption(opt);charts.push(c);c.on("click",()=>toast("Drill-through → filtered case list (chart → data)"))};
+ mk("ch1",{...base,xAxis:{type:"category",data:["US Fed","CA","NY","GA film","NY film","UK"],...ax},yAxis:{type:"value",...ax,axisLabel:{...ax.axisLabel,formatter:v=>"$"+v+"M"}},series:[{type:"bar",data:[2.41,0.68,0.29,5.11,1.83,0.83],itemStyle:{color:c1,borderRadius:[4,4,0,0]},barWidth:26,label:{show:true,position:"top",color:tx,fontSize:10,formatter:p=>"$"+p.value+"M"}}]});
+ mk("ch2",{...base,grid:{...base.grid,bottom:28},tooltip:{...base.tooltip,trigger:"item"},legend:{bottom:0,textStyle:{color:tx,fontSize:10.5},itemWidth:10,itemHeight:10},xAxis:{type:"category",data:["Data load","Assessment","Interactions","Tech review","Fin review","Filing","Filed"],...ax},yAxis:{type:"value",...ax},series:[{name:"R&D",type:"bar",stack:"s",data:[3,2,4,5,2,1,1],itemStyle:{color:c1,borderColor:cvar("--bg-surface"),borderWidth:2,borderRadius:[0,0,0,0]},barWidth:30},{name:"Film",type:"bar",stack:"s",data:[1,0,1,1,1,1,0],itemStyle:{color:c2,borderColor:cvar("--bg-surface"),borderWidth:2,borderRadius:[4,4,0,0]}}]});
+ mk("ch3",{...base,xAxis:{type:"category",data:["FY2022","FY2023","FY2024","FY2025"],...ax},yAxis:{type:"value",...ax,axisLabel:{...ax.axisLabel,formatter:v=>"$"+v+"M"}},series:[{type:"line",data:[10.4,12.1,13.9,16.1],lineStyle:{color:c1,width:2},itemStyle:{color:c1},symbolSize:8,label:{show:true,position:"top",color:tx,fontSize:10,formatter:p=>p.dataIndex===3?"$16.1M":""},areaStyle:{color:c1,opacity:.08}}]});
+ mk("ch4",{...base,tooltip:{...base.tooltip,trigger:"item"},legend:{bottom:0,textStyle:{color:tx,fontSize:10.5},itemWidth:10,itemHeight:10},series:[{type:"pie",radius:["42%","68%"],center:["50%","44%"],data:[{value:5.11,name:"Transfer (GA) — $5.11M",itemStyle:{color:c1}},{value:1.83,name:"Refundable (NY) — $1.83M",itemStyle:{color:c2}},{value:0.9,name:"Retained — $0.9M",itemStyle:{color:c3}}],label:{color:tx,fontSize:10.5,formatter:"{b}"},itemStyle:{borderColor:cvar("--bg-surface"),borderWidth:2}}]})}
+window.addEventListener("resize",()=>charts.forEach(c=>c.resize()));
+/* =================== OTHER SCREENS =================== */
+function importScreen(){return `
+<div class="pane-h"><div class="ph-row"><div class="ph-title">${ic("download",20)} Data Import & Bulk Operations</div></div></div>
+<div class="body-scroll">
+${sec("Import wizard (universal — all major entities)",`<div class="card"><div class="card-b">
+<div style="display:flex;gap:6px;margin-bottom:12px">${["1 Entity","2 Data","3 Mapping","4 Validate","5 Commit","6 Summary"].map((s,i)=>`<span class="pill ${i===2?'info':'n'}">${s}</span>`).join("")}</div>
+<table class="lv"><thead><tr><th>Source column</th><th></th><th>Target field</th><th>Transform</th></tr></thead><tbody>
+<tr><td>EMP_NAME</td><td>→</td><td><b>Resource.name</b></td><td>—</td></tr>
+<tr><td>PROJ_CODE</td><td>→</td><td><b>Project.external_id</b></td><td>dedup key</td></tr>
+<tr><td>CONTRACT_TYP</td><td>→</td><td><b>Project.contract_type</b></td><td>map: FP→fixed_price, TM→time_and_material</td></tr>
+<tr><td>ST_PROV</td><td>→</td><td><b>ProjectResource.location.state</b></td><td>validate: ISO region</td></tr></tbody></table>
+<div class="note">Mapping templates savable per entity+source — year-2 import = one click. Valid rows auto-commit; errors quarantine.</div>
+<button class="btn pri" onclick="toast('202 → BackgroundJob · idempotent upsert via IdentityCrosswalk · statistics notification on completion')">Validate & commit (async)</button></div></div>`)}
+${sec("Bulk update (preview → approve → apply)",`<div class="note">Allow-listed fields only. Guarded fields (qre_pct, qualifying_pct) still route via adjustments — even in bulk. Dry-run diff before apply; per-row outcomes after.</div>`)}
+${sec("Bulk delete (impact preview)",`<div class="gate">DeletionImpact: deleting Project "Legacy Portal 2019" cascades to 4 ProjectFYs · 12 ProjectResources · 3 draft summaries. <b>BLOCKED:</b> FY2023 rows tied to a FILED filing — surfaced, never silently skipped.</div>`)}
+</div>`}
+function jobsScreen(){return `
+<div class="pane-h"><div class="ph-row"><div class="ph-title">${ic("activity",20)} Background Jobs</div><span class="pill n">every bulk action is async · event-based</span></div></div>
+<div class="body-scroll"><table class="lv"><thead><tr><th>Job</th><th>Status</th><th>Statistics</th><th>When</th></tr></thead><tbody>
+${S.jobs.map(j=>`<tr><td><b>${j.n}</b></td><td>${pill(j.s)}</td><td>${j.stat}</td><td>${j.when}</td></tr>`).join("")}
+</tbody></table><div class="note">Completion notifies the initiator with statistics (in-app + push for long jobs). Per-tenant fairness caps — one tenant's 1M-row import never starves another's.</div></div>`}
+function adminScreen(){return `
+<div class="pane-h"><div class="ph-row"><div class="ph-title">${ic("shield",20)} Security & Access Administration</div><span class="pill n">Salesforce-grade · in-app · no deployments</span></div></div>
+<div class="body-scroll"><div class="grid2">
+<div class="card"><div class="card-h">Profiles (14 · four scopes)</div><div class="card-b"><table class="lv"><tbody>
+<tr><td>ProfessionalServicesConsultantLead</td><td><span class="pill info">consultant firm</span></td><td>4 users</td></tr>
+<tr><td>TechnicalConsultant</td><td><span class="pill info">consultant firm</span></td><td>6 users</td></tr>
+<tr><td>ClientFinanceAssociate</td><td><span class="pill n">client firm</span></td><td>12 users</td></tr>
+<tr><td>ExternalAttestor</td><td><span class="pill warn">external partner</span></td><td>OTP only</td></tr></tbody></table></div></div>
+<div class="card"><div class="card-h">Permission Sets (additive)</div><div class="card-b"><table class="lv"><tbody>
+<tr><td>PS.QREUnlock</td><td>Sofia Rossi</td><td><span class="pill warn">expires Sep 30</span></td></tr>
+<tr><td>PS.MonetizationDesk</td><td>Sofia Rossi</td><td><span class="pill ok">active</span></td></tr>
+<tr><td>PS.FilmLabourVerify</td><td>Film desk ×2</td><td><span class="pill ok">active</span></td></tr>
+<tr><td>PS.HardPurge</td><td>—</td><td><span class="pill err">high-privilege · review</span></td></tr></tbody></table></div></div>
+<div class="card"><div class="card-h">Field-Level Security — ProjectResource</div><div class="card-b"><table class="lv"><thead><tr><th>Field</th><th>CaseManager</th><th>TC</th><th>FC</th></tr></thead><tbody>
+<tr><td>cost_basis</td><td><span class="pill err">hidden</span></td><td><span class="pill n">read</span></td><td><span class="pill ok">edit</span></td></tr>
+<tr><td>qre_pct</td><td><span class="pill n">read</span></td><td><span class="pill lock">guarded 🔒</span></td><td><span class="pill n">read</span></td></tr>
+<tr><td>hours</td><td><span class="pill ok">edit</span></td><td><span class="pill ok">edit</span></td><td><span class="pill ok">edit</span></td></tr>
+</tbody></table><div class="note">Hidden fields never leave the API. Guarded fields ignore FLS "edit" — adjustment path only.</div></div></div>
+<div class="card"><div class="card-h">Role hierarchy & Territories</div><div class="card-b" style="font-size:12px;line-height:2">
+Managing Partner<br>└ <b>US Territory Lead</b> — <span class="pill n">Americas › United States</span><br>&nbsp;&nbsp;└ Engagement Lead (John) — sees team's work<br>&nbsp;&nbsp;&nbsp;&nbsp;├ Senior Consultant ×3<br>&nbsp;&nbsp;&nbsp;&nbsp;└ Case Manager (Diego)
+<div class="note">Visibility = Role subtree ∪ Territory(+desc) ∪ Account subtrees, bounded by residency.</div></div></div>
+</div></div>`}
+function occScreen(){return `
+<div class="pane-h"><div class="ph-row"><div class="ph-title">${ic("monitor",20)} Operations Control Center</div><span class="pill n">tenant scope: Certainti.Ai</span></div></div>
+<div class="body-scroll">
+<div class="grid4" style="margin-bottom:14px">
+<div class="tile"><div class="tl">New criticals</div><div class="tv" style="color:var(--err)">1</div><div class="td">SLA clock 3h 12m</div></div>
+<div class="tile"><div class="tl">API error rate (24h)</div><div class="tv">0.31%</div><div class="td">p95 214ms · within NFR-2</div></div>
+<div class="tile"><div class="tl">Failing jobs</div><div class="tv">0</div><div class="td">1 completed w/ errors</div></div>
+<div class="tile"><div class="tl">Quarantine depth</div><div class="tv">38</div><div class="td">EP payroll · vendor tax IDs</div></div></div>
+${sec("Errors & warnings (acknowledge → resolve)",`<table class="lv"><thead><tr><th>Severity</th><th>Event</th><th>Source</th><th>Status</th><th></th></tr></thead><tbody>
+<tr><td><span class="pill err">critical</span></td><td>Notification delivery failing — Teams webhook 401 (retrying)</td><td>platform-notify</td><td><span class="pill warn">acknowledged</span></td><td><button class="btn sm" onclick="toast('Resolve requires a note — lifecycle audited')">Resolve…</button></td></tr>
+<tr><td><span class="pill warn">warning</span></td><td>Ingestion quarantine above threshold (38 rows)</td><td>platform-ingest</td><td><span class="pill n">new</span></td><td><button class="btn sm">Acknowledge</button></td></tr>
+<tr><td><span class="pill info">info</span></td><td>Audit-chain nightly verification — PASS (2 streams)</td><td>audit</td><td><span class="pill ok">resolved</span></td><td></td></tr>
+</tbody></table>`)}
+${sec("Action explorer (universal audit)",`<div class="lc"><input placeholder="actor…"><input placeholder="verb…"><span class="chip on">Channel: all</span><span class="chip">UI</span><span class="chip">API</span><span class="chip">Bulk</span><span class="chip">AI accept</span><span class="chip">Ingestion</span></div>
+<div class="tl-item"><div class="tl-dot"></div><div><b>Wei Chen</b> qre_pct 88→95 (Vasquez) <span class="chan">UI</span><div class="tl-meta">Aug 9 14:22 · trace 8f2a… · justification attached</div></div></div>
+<div class="tl-item"><div class="tl-dot"></div><div><b>svc-ingest</b> 4,211 spend lines upserted <span class="chan">INGESTION</span><div class="tl-meta">Aug 8 02:00 · IngestionRun #81</div></div></div>
+<div class="tl-item"><div class="tl-dot"></div><div><b>John Doe</b> viewed evidence item EV-2231 (support of SOW-097 exclusion) <span class="chan">READ</span><div class="tl-meta">Aug 8 11:02 · sensitive-read audit</div></div></div>`)}
+</div>`}
+function studioScreen(){return `
+<div class="pane-h"><div class="ph-row"><div class="ph-title">${ic("layers",20)} Cartridge Authoring Studio</div><span class="pill n">platform-canonical · maker-checker</span></div></div>
+<div class="body-scroll">
+${sec("US Federal R&D — eligibility decision table (4-part test)",`<table class="lv"><thead><tr><th>Gate</th><th>Kind</th><th>Rule / prompt</th><th>Citation</th></tr></thead><tbody>
+<tr><td>Statutory exclusions</td><td><span class="pill n">deterministic</span></td><td>funded research · post-commercial · foreign activity…</td><td>§41(d)(4)</td></tr>
+<tr><td>Permitted purpose</td><td><span class="pill n">deterministic</span></td><td>new/improved function, performance, reliability, quality</td><td>§41(d)(1)(B)</td></tr>
+<tr><td>Technological uncertainty</td><td><span class="pill warn">judgment gate</span></td><td>asserted by qualified human · evidence-linked · needs-review default</td><td>Treas. Reg. 1.41-4</td></tr>
+<tr><td>Process of experimentation</td><td><span class="pill warn">judgment gate</span></td><td>systematic evaluation of alternatives</td><td>§41(d)(1)(C)</td></tr>
+</tbody></table>
+<div style="display:flex;gap:8px;margin-top:10px"><button class="btn sm" onclick="toast('Fixture suite: 34 golden scenarios — publish blocked on failure')">▶ Run fixtures (34)</button><button class="btn sm" onclick="toast('Clone as template → author a state cartridge (e.g. Georgia R&D) — zero spine code')">⧉ Clone as template</button><button class="btn sm" onclick="toast('AI-assisted draft: feed the state statute → draft decision table with citations for specialist review')">✨ AI-assist from statute</button></div>`)}
+${sec("Effective-dated parameters",`<table class="lv"><thead><tr><th>Parameter</th><th class="num">Value</th><th>Valid</th></tr></thead><tbody>
+<tr><td>ASC_rate</td><td class="num">14%</td><td>2009-01-01 → open</td></tr>
+<tr><td>contract_research_pct</td><td class="num">65%</td><td>1986-01-01 → open</td></tr>
+<tr><td>GA_film_base_rate</td><td class="num">20% (+10% uplift)</td><td>2008-01-01 → open</td></tr>
+</tbody></table><div class="note">Rules & forms resolve as-of the filing period; filed claims never see later changes.</div>`)}
+</div>`}
+/* boot */
+render();
+</script>
+<script>
+ 
+function hydrateIcons(){document.querySelectorAll("[data-ic]").forEach(e=>{if(!e.dataset.done){e.innerHTML=ic(e.dataset.ic,16);e.dataset.done=1}})}
+hydrateIcons();
+</script></body></html>
+<script>
+/* =================== V2 EXPANSION: granular nav + entity screens + drill-downs =================== */
+/* extra seed */
+S.contacts=[
+ {n:"Marcus Webb",acct:"Northwind Technologies",title:"VP Engineering",email:"m.webb@northwind.com",role:"Project PoC ×2",phone:"+1 415 220 8841"},
+ {n:"Jenna Ortiz",acct:"Meridian Bank Group",title:"Program Director",email:"j.ortiz@meridianbg.com",role:"Client PoC (Atlas, Core Banking)",phone:"+1 212 555 0173"},
+ {n:"Ahmed Farouk",acct:"Northwind Technologies",title:"Head of Security Eng",email:"a.farouk@northwind.com",role:"Project PoC",phone:"+1 628 555 0102"},
+ {n:"Lena Kowalski",acct:"TeleSure Insurance",title:"CTO Office",email:"l.kowalski@telesure.com",role:"Client PoC",phone:"+44 20 7946 0332"},
+ {n:"Rachel Donovan",acct:"Aurora Pictures",title:"Director",email:"r.donovan@aurorapics.com",role:"Production",phone:"+1 310 555 0199"},
+ {n:"David Kim",acct:"Northwind Technologies",title:"CFO",email:"d.kim@northwind.com",role:"ClientFinanceExecutive (portal)",phone:"+1 415 220 8802"}];
+S.skills=[["Machine Learning",4,"Engineering"],["Data Engineering",6,"Engineering"],["Distributed Systems",5,"Engineering"],["Cryptography",2,"Engineering"],["Test Automation",3,"Quality"],["Product Management",2,"Business"],["Cloud Infrastructure",5,"Engineering"],["VFX / Post-production",12,"Film"]];
+S.resourceMaster=[
+ {n:"Dr. Elena Vasquez",type:"FTE",title:"Principal ML Scientist",skills:"Machine Learning (Expert, 12y)",loc:"CA, USA",cost:"$310k",util:"98%",projects:2},
+ {n:"Tom Nakamura",type:"FTE",title:"Senior Data Engineer",skills:"Data Engineering (Adv, 8y)",loc:"CA, USA",cost:"$245k",util:"92%",projects:2},
+ {n:"Sarah Kim",type:"FTE",title:"ML Engineer",skills:"Machine Learning (Adv, 5y)",loc:"WA, USA",cost:"$198k",util:"95%",projects:1},
+ {n:"DataCraft Consulting",type:"Subcontractor",title:"Vendor — data pipelines",skills:"Data Engineering",loc:"TX, USA",cost:"$185k (PO)",util:"—",projects:1},
+ {n:"Nina Petrova",type:"FTE",title:"QA Automation Lead",skills:"Test Automation (Adv, 7y)",loc:"NY, USA",cost:"$176k",util:"88%",projects:2},
+ {n:"Yuki Tanaka",type:"FTE",title:"Systems Engineer",skills:"Distributed Systems (Adv, 6y)",loc:"CA, USA",cost:"$205k",util:"90%",projects:1}];
+S.costLines=[
+ {d:"Payroll — Engineering (Q3 batch)",cat:"Wages",amt:"$2,814,200",map:"auto (rule W-114)",conf:"0.97",st:"mapped"},
+ {d:"AWS — ML training clusters",cat:"Cloud computing",amt:"$412,800",map:"auto (rule C-021)",conf:"0.94",st:"mapped"},
+ {d:"DataCraft Consulting — INV-2231",cat:"Contract research",amt:"$92,500",map:"AI suggested",conf:"0.86",st:"review"},
+ {d:"Lab hardware — GPU rigs ×4",cat:"Supplies",amt:"$61,400",map:"AI suggested",conf:"0.91",st:"mapped"},
+ {d:"Conference travel — team offsite",cat:"Excluded",amt:"$18,200",map:"auto (exclusion)",conf:"0.99",st:"excluded"},
+ {d:"Recruiting fees — ML roles",cat:"Excluded",amt:"$44,000",map:"AI suggested",conf:"0.78",st:"review"}];
+S.vendors=[["Savannah Grip & Electric","GA","✓ qualified","$1,844,000"],["Coastal Catering Co.","GA","✓ qualified","$412,000"],["Buffalo Stage Rentals","NY","✓ qualified","$688,000"],["West Coast VFX Ltd","CA","✗ out-of-state","$1,120,000 (excluded)"],["Peach State Transport","GA","✓ qualified","$505,000"]];
+S.evidenceVault=[
+ {n:"MSA — Meridian Bank Group (2023)",type:"Contract",tag:"contemporaneous",links:"Contract-risk ×2",hash:"8f2a…c1",date:"2023-03-14"},
+ {n:"SOW-114 — Atlas settlement engine",type:"Contract",tag:"contemporaneous",links:"Contract-risk (Atlas)",hash:"77b0…9d",date:"2024-11-02"},
+ {n:"Git history export — Helios (14,212 commits)",type:"Technical",tag:"contemporaneous",links:"Experimentation gate ×4",hash:"a1f9…33",date:"2025-12-31"},
+ {n:"Architecture decision records ×9",type:"Technical",tag:"contemporaneous",links:"Uncertainty gate ×3",hash:"5c2e…78",date:"2025-10-08"},
+ {n:"PoC interview transcript — Helios deep-dive",type:"Interview",tag:"contemporaneous",links:"Gates ×2, Summary v5",hash:"e30a…b2",date:"2026-08-13 (sched)"},
+ {n:"Timesheet survey responses — 4 resources",type:"Allocation",tag:"reconstructed",links:"Allocations ×4",hash:"90dd…4e",date:"2026-07-22"},
+ {n:"Call sheets — Midnight Harbor (96)",type:"Production",tag:"contemporaneous",links:"In-state day counts",hash:"bb61…07",date:"2025-09-30"},
+ {n:"Loan-out registrations ×6 (GA DOR)",type:"Compliance",tag:"contemporaneous",links:"Personnel ×6",hash:"14c8…5a",date:"2025-06-12"}];
+/* granular nav */
+NAV.length=0;
+NAV.push(
+ {h:"CRM",items:[["home","home","Home / Work Queue"],["accounts","building","Accounts"],["entities","landmark","Legal Entities"],["contacts","�ial","Contacts"]]},
+ {h:"Cases",items:[["rnd","briefcase","R&D — Northwind FY2025"],["film","clapper","Film — Midnight Harbor"]]},
+ {h:"R&D Assessment",items:[["projectsAll","folder","Projects"],["resources","users","Resources"],["skills","grad","Skills"]]},
+ {h:"Film Assessment",items:[["productions","film","Productions"],["personnelAll","users","Personnel"],["vendorsAll","truck","Vendors"]]},
+ {h:"Cost & Qualification",items:[["costq","🧾","Cost Lines & Mapping"]]},
+ {h:"Evidence",items:[["vault","🗂","Evidence Vault"]]},
+ {h:"Analytics",items:[["dash","chart","Dashboards"]]},
+ {h:"Data",items:[["import","download","Import / Bulk Ops"],["jobsview","activity","Background Jobs"]]},
+ {h:"Admin",items:[["admin","shield","Security & Access"],["licensing","key","Licensing & Usage"],["ops","monitor","Operations (OCC)"],["studio","layers","Authoring Studio"]]});
+NAV[0].items[3][1]="user";
+/* generic list screen factory */
+function listShell(title,chips,cols,rows,note){return `
+<div class="pane-h"><div class="ph-row"><div class="ph-title">${title}</div><span style="flex:1"></span><button class="btn">＋ New</button><button class="btn" onclick="toast('Export honors filters/sort/columns → CSV · XLSX · PDF')">⬇ Export</button></div>
+<div class="lc">${chips.map((c,i)=>`<span class="chip ${i===0?'on':''}">${c}</span>`).join("")}<span class="sp"></span><input placeholder="Search…"><button class="chip">⚑ Filter</button><button class="chip">↕ Sort</button><button class="chip">☰ Columns</button><button class="chip">💾 Views ▾</button></div></div>
+<div class="body-scroll"><table class="lv"><thead><tr>${cols.map(c=>`<th>${c}</th>`).join("")}</tr></thead><tbody>${rows}</tbody></table>${note?`<div class="note">${note}</div>`:""}</div>`}
+let selProj="p1";
+const V2={
+ entities:()=>listShell("Legal Entities",["All (4)","US (2)","UK (1)","Film SPV (1)"],["Entity","Parent account","Jurisdiction","Tax IDs","Fiscal year","Branches","Cases"],
+  `<tr onclick="go('accounts')"><td class="link">Northwind Technologies Inc.</td><td>Northwind Global Holdings</td><td>US (Delaware)</td><td>EIN 82-114…</td><td>Jan–Dec</td><td>3 (CA·WA·NY)</td><td>2</td></tr>
+   <tr onclick="go('accounts')"><td class="link">Northwind Labs UK Ltd</td><td>Northwind Global Holdings</td><td>United Kingdom</td><td>UTR 55821…</td><td>Apr–Mar</td><td>1 (Cambridge)</td><td>1</td></tr>
+   <tr onclick="go('accounts')"><td class="link">Aurora Pictures LLC</td><td>Aurora Pictures Group</td><td>US (Georgia)</td><td>EIN 88-330…</td><td>Jan–Dec</td><td>—</td><td>1</td></tr>
+   <tr><td class="link">Northwind GmbH (dormant)</td><td>Northwind Global Holdings</td><td>Germany</td><td>—</td><td>Jan–Dec</td><td>—</td><td>0</td></tr>`,
+  "Branch locations feed ProgramApplicability (auto state materialization) + territory derivation."),
+ contacts:()=>listShell("Contacts",["All (6)","Project PoCs","Client portal users","Production"],["Name","Account","Title","Email","Phone","Platform role"],
+  S.contacts.map(c=>`<tr><td class="link">${c.n}</td><td>${c.acct}</td><td>${c.title}</td><td>${c.email}</td><td>${c.phone}</td><td><span class="pill n">${c.role}</span></td></tr>`).join(""),
+  "PoC contacts receive interactions via OTP — no standing accounts. Portal users hold client-firm profiles."),
+ projectsAll:()=>listShell("Projects — all entities",["All (32)","FY2025 (6 in case)","Key ⭐ (2)","Client-delivered (3)","Excluded (1)"],["Project","Entity","FY","Contract type","Group","Client group","QRE% (S/CW)","Eligibility","Risk"],
+  S.rndCase.projects.map(p=>`<tr onclick="selProj='${p.id}';go('projDetail')"><td class="link">${p.key?"⭐ ":""}${p.name}</td><td>Northwind Tech</td><td>FY2025</td><td><span class="pill ${p.ctype==='Internal'?'n':p.ctype==='Fixed Price'?'info':'warn'}">${p.ctype}</span></td><td>${p.group}</td><td>${p.client}</td><td><b>${p.qreS}%</b> / ${p.qreW}%</td><td>${pill(p.elig)}</td><td>${p.risk==="—"?"—":p.risk==="eligible"?'<span class="pill ok">clear</span>':p.risk==="excluded_funded"?'<span class="pill err">funded</span>':'<span class="pill warn">review</span>'}</td></tr>`).join(""),
+  "Click a project → full detail page (primary entity: header + sections + related lists + Timeline)."),
+ projDetail:()=>{const p=S.rndCase.projects.find(x=>x.id===selProj)||S.rndCase.projects[0];return `
+  <div class="pane-h"><div class="crumbs"><a href="#" onclick="go('projectsAll');return false">Projects</a> › <b>${p.name}</b></div>
+  <div class="ph-row"><div class="ph-title">${p.key?"⭐ ":""}${p.name}</div>${pill(p.elig)}<span class="pill ${p.ctype==='Internal'?'n':'warn'}">${p.ctype}</span><span class="pill n">${p.group}</span><span style="flex:1"></span><button class="btn pri" onclick="runAssessment()">▶ Assess project</button></div></div>
+  <div class="body-scroll">
+  <div class="grid4" style="margin-bottom:14px">
+  <div class="tile"><div class="tl">QRE% (simple / cost-weighted)</div><div class="tv">${p.qreS}% / ${p.qreW}%</div><div class="td">authoritative: simple</div></div>
+  <div class="tile t2"><div class="tl">FTE / Subcon cost (FY2025)</div><div class="tv" style="font-size:16px">${p.fte} / ${p.sub}</div><div class="td">per-FY capture</div></div>
+  <div class="tile t3"><div class="tl">Resources</div><div class="tv">${p.resources}</div><div class="td">${p.id==="p1"?"1 locked · 1 AI-suggested":"—"}</div></div>
+  <div class="tile t4"><div class="tl">Point of contact</div><div class="tv" style="font-size:15px">${p.poc}</div><div class="td">interactions via OTP</div></div></div>
+  ${sec("Attributes",`<div class="grid2"><table class="lv"><tbody>
+  <tr><td>External ID</td><td><b>NWT-${p.id.toUpperCase()}-2025</b></td></tr>
+  <tr><td>Description</td><td style="font-size:11.5px">${p.id==="p1"?"Probabilistic demand forecasting at retail-item granularity; novel hierarchical model architecture.":"—"}</td></tr>
+  <tr><td>Contract type</td><td>${p.ctype} <span style="font-size:10.5px;color:var(--text-muted)">(eligibility signal → funded-research analysis)</span></td></tr>
+  <tr><td>Project group</td><td>${p.group}</td></tr></tbody></table>
+  <table class="lv"><tbody>
+  <tr><td>Client group</td><td>${p.client}</td></tr>
+  <tr><td>Key project</td><td>${p.key?"⭐ Yes — materiality flag (deep-dive target)":"No"}</td></tr>
+  <tr><td>Fiscal years</td><td>FY2023 · FY2024 · <b>FY2025</b> (one ProjectFY row per year)</td></tr>
+  <tr><td>Business component</td><td>Forecasting Platform v3</td></tr></tbody></table></div>`)}
+  ${sec("Eligibility — per filing (reasoning traces)",`<table class="lv"><thead><tr><th>Filing</th><th>Verdict</th><th>Gates</th><th>Trace</th></tr></thead><tbody>
+  <tr><td>US Federal</td><td>${pill(p.elig)}</td><td>4-part: PP ✓ · TiN ✓ · Uncertainty ${p.elig==="review"?"◌ unasserted":"✓ asserted (Wei Chen)"} · Experimentation ✓</td><td><span class="prov" onclick="toast('Reasoning trace: rules fired, gate states, evidence links, citations — plain-language explanation')">view trace</span></td></tr>
+  <tr><td>California</td><td>${pill(p.elig)}</td><td>conforms to federal + CA activity nexus ✓</td><td><span class="prov">view trace</span></td></tr>
+  <tr><td>New York</td><td>${pill(p.id==="p4"?"fail":p.elig)}</td><td>${p.id==="p4"?"out-of-state activity excluded":"NY activity nexus ✓"}</td><td><span class="prov">view trace</span></td></tr></tbody></table>`)}
+  ${p.id==="p1"?sec("Project resources (QRE% grid — related list)",qreGrid(S.rndCase)):sec("Project resources","<div class='note'>Grid seeded for Helios (p1) in this prototype — same component for every project.</div>",false)}
+  ${sec("Technical summary (versioned)",`<div style="display:flex;gap:8px;align-items:center"><span class="pill ok">v5 approved</span><span style="font-size:11.5px;color:var(--text-secondary)">ai_refined · Wei Chen · 2026-08-10 · every claim cited</span><button class="btn sm" onclick="openModal(diffModal())">diff v4→v5</button></div>`,false)}
+  ${sec("Tasks · Activities · Notes · Attachments",`<div class="note">Polymorphic panels — same components everywhere (Attachable pattern). 3 open tasks · 12 activities · 4 notes · 9 attachments.</div>`,false)}
+  ${sec("Timeline",`<div class="tl-item"><div class="tl-dot"></div><div><b>Wei Chen</b> asserted Uncertainty gate (evidence: ADR-007, spike EXP-114) <span class="chan">UI</span><div class="tl-meta">Aug 9 · JudgmentAssertion</div></div></div>`,false)}
+  </div>`},
+ resources:()=>listShell("Resources — employee & subcontractor master",["All (214)","FTE (198)","Subcontractors (16)","On R&D projects (48)"],["Resource","Type","Title","Skills (proficiency)","Location","FY cost","Utilization","Projects"],
+  S.resourceMaster.map(r=>`<tr><td class="link">${r.n}</td><td><span class="pill ${r.type==='FTE'?'n':'info'}">${r.type}</span></td><td>${r.title}</td><td style="font-size:11.5px">${r.skills}</td><td>${r.loc}</td><td>${r.cost}</td><td>${r.util}</td><td>${r.projects}</td></tr>`).join(""),
+  "Skills & experience feed the QRE weightage curve; location feeds state applicability + territory. Ingested from Workday (IngestionRun #77)."),
+ skills:()=>listShell("Skills master",["All (8)","Engineering","Film"],["Skill","Category","Resources","Weightage factor"],
+  S.skills.map(s=>`<tr><td class="link">${s[0]}</td><td>${s[2]}</td><td>${s[1]}</td><td>${s[2]==="Engineering"?"1.2×":s[2]==="Film"?"—":"0.8×"}</td></tr>`).join(""),
+  "Reference data (ingestible). Weightage factors are cartridge-default → tenant-overridable (QREWeightageConfig)."),
+ productions:()=>listShell("Productions",["All (3)","Active (1)","Certified (1)","Pipeline (1)"],["Production","Type","SPV entity","States","Status","Qualified spend","Est./cert. credit"],
+  `<tr onclick="go('film')"><td class="link">“Midnight Harbor”</td><td>Feature</td><td>Aurora Pictures LLC</td><td>GA + NY</td><td><span class="pill warn">CPA Attestation</span></td><td>$23.1M</td><td>$6.94M est.</td></tr>
+   <tr><td class="link">“The Long Season” (S1)</td><td>TV Series</td><td>Aurora TV I LLC</td><td>GA</td><td><span class="pill ok">Certified · monetized</span></td><td>$41.2M</td><td>$12.4M cert.</td></tr>
+   <tr><td class="link">“Cobalt” (development)</td><td>Feature</td><td>—</td><td>LA (planned)</td><td><span class="pill n">Pipeline</span></td><td>—</td><td>$3.1M projected</td></tr>`),
+ personnelAll:()=>listShell("Personnel — Midnight Harbor",["All (198)","ATL (14)","BTL (184)","Loan-outs (6)","⚠ Cert gaps (7)"],["Person / group","Line","Role","Residency","Loan-out","Qualifying %"],
+  S.filmCase.personnel.map(p=>`<tr><td class="link">${p.name}</td><td><span class="pill ${p.line==='ATL'?'info':'n'}">${p.line}</span></td><td>${p.role}</td><td style="font-size:11.5px">${p.res}</td><td style="font-size:11.5px">${p.loan}</td><td><b>${p.pct}%</b>${p.locked?' <span class="pill lock">🔒</span>':''}</td></tr>`).join(""),
+  "Residency + loan-out status are evidence-backed (verified flags) — failures exclude labour until cured."),
+ vendorsAll:()=>listShell("Vendors — Midnight Harbor",["All (61)","GA qualified","Out-of-state"],["Vendor","State","Qualification","Spend"],
+  S.vendors.map(v=>`<tr><td class="link">${v[0]}</td><td>${v[1]}</td><td>${v[2].startsWith("✓")?`<span class="pill ok">${v[2]}</span>`:`<span class="pill err">${v[2]}</span>`}</td><td>${v[3]}</td></tr>`).join("")),
+ costq:()=>listShell("Cost Lines & Qualification mapping",["All (2,847)","Auto-mapped (2,684)","AI review queue (117)","Excluded (46)"],["Cost line","Category","Amount","Mapping","Confidence","Status"],
+  S.costLines.map(c=>`<tr><td>${c.d}</td><td><b>${c.cat}</b></td><td class="num">${c.amt}</td><td style="font-size:11.5px">${c.map}</td><td>${c.conf}</td><td>${c.st==="mapped"?pill("satisfied"):c.st==="review"?pill("partial"):pill("fail")}</td></tr>`).join(""),
+  "≥ threshold auto-maps; below → review queue with source jump-link + side-by-side. Splits/apportionments carry evidence. Tenant mapping memory learns confirmed decisions."),
+ vault:()=>listShell("Evidence Vault",["All (312)","Contemporaneous (261)","Reconstructed (51)","On legal hold (0)"],["Evidence item","Type","Tag","Linked to","Hash","Date"],
+  S.evidenceVault.map(e=>`<tr><td class="link">${e.n}</td><td>${e.type}</td><td>${e.tag==="contemporaneous"?`<span class="pill ok">contemporaneous</span>`:`<span class="pill warn">reconstructed</span>`}</td><td style="font-size:11.5px">${e.links}</td><td style="font-family:monospace;font-size:10.5px">${e.hash}</td><td>${e.date}</td></tr>`).join(""),
+  "One vault: attachments promote to evidence (hash-on-ingest, ClamAV-scanned, region-pinned, retention-managed). Reads of evidence are audited (sensitive-read)."),
+ licensing:()=>`
+  <div class="pane-h"><div class="ph-row"><div class="ph-title">${ic("key",20)} Licensing & Usage</div><span class="pill n">tenant: Certainti.Ai · Plan: Professional</span></div></div>
+  <div class="body-scroll"><div class="grid4" style="margin-bottom:14px">
+  <div class="tile"><div class="tl">License</div><div class="tv" style="font-size:15px">Active · term to Dec 2026</div><div class="td">45 seats (38 used)</div></div>
+  <div class="tile t2"><div class="tl">Cartridges licensed</div><div class="tv">9</div><div class="td">US Fed + 5 states · UK · GA/NY film</div></div>
+  <div class="tile t3"><div class="tl">Claims this term</div><div class="tv">61 / 100</div><div class="td">meter: claim</div></div>
+  <div class="tile t4"><div class="tl">AI usage</div><div class="tv">78%</div><div class="td"><span class="pill warn">warn at 80%</span> · warn-not-block</div></div></div>
+  ${sec("Usage vs entitlements",`<table class="lv"><thead><tr><th>Meter</th><th class="num">Used</th><th class="num">Limit</th><th>Status</th></tr></thead><tbody>
+  <tr><td>Claims (filings)</td><td class="num">61</td><td class="num">100</td><td>${pill("satisfied")}</td></tr>
+  <tr><td>AI usage (units)</td><td class="num">39,120</td><td class="num">50,000</td><td><span class="pill warn">78% — alert armed</span></td></tr>
+  <tr><td>Document storage</td><td class="num">412 GB</td><td class="num">1 TB</td><td>${pill("satisfied")}</td></tr>
+  <tr><td>Seats</td><td class="num">38</td><td class="num">45</td><td>${pill("satisfied")}</td></tr></tbody></table>
+  <div class="note">Over-limit default = warn + grace (filing-critical actions never hard-blocked). Operator pushes upgrades (LicenseChange — immediate or dated, audited).</div>`)}</div>`
+};
+/* wrap router */
+const baseRender=render;
+render=function(){ if(V2[route]){renderNav();$("#content").innerHTML=V2[route]();renderDrawers()} else baseRender() };
+/* richer search entries */
+GS.push(["ENTITY","Northwind Labs UK Ltd","entities"],["RESOURCE","Dr. Elena Vasquez — Principal ML Scientist","resources"],["VENDOR","Savannah Grip & Electric","vendorsAll"],["EVIDENCE","SOW-114 — Atlas settlement engine","vault"],["SKILL","Machine Learning","skills"]);
+render();
+</script>
+<script>
+/* =================== PALETTE SETTINGS (live theme variations) =================== */
+const PALETTES={
+ lavender_RETIRED:{name:"(retired)",sw:"#7C6FDE",
+  light:{accent:"#7C6FDE","accent-hover":"#6A5CD1","accent-subtle":"#EFEBFC",focus:"#7C6FDE","bg-selected":"#EDE9FC","bg-canvas":"#F6F4FB","bg-sunken":"#F3F0FA",border:"#EBE7F5","border-strong":"#DCD6EE","accent-grad":"linear-gradient(120deg,#8B7CF0,#6D5FD3)"},
+  dark:{accent:"#A79BF0","accent-hover":"#BDB3F5","accent-subtle":"#2E2952",focus:"#A79BF0","bg-selected":"#332D55","bg-canvas":"#16142A","bg-sunken":"#1A1730",border:"#312C4E","border-strong":"#423C63","accent-grad":"linear-gradient(120deg,#8B7CF0,#6D5FD3)"}},
+ ocean:{name:"Ocean",sw:"#4E8FD9",
+  light:{accent:"#4E8FD9","accent-hover":"#3D7CC4","accent-subtle":"#E8F1FB",focus:"#4E8FD9","bg-selected":"#E1EDFA","bg-canvas":"#F3F7FC","bg-sunken":"#EEF4FA",border:"#E3ECF6","border-strong":"#D0DFEF","accent-grad":"linear-gradient(120deg,#63A2E8,#3D7CC4)"},
+  dark:{accent:"#7FB1EE","accent-hover":"#9CC3F4","accent-subtle":"#1E2E45",focus:"#7FB1EE","bg-selected":"#27395A","bg-canvas":"#121A28","bg-sunken":"#151F30",border:"#263650","border-strong":"#354A6B","accent-grad":"linear-gradient(120deg,#63A2E8,#3D7CC4)"}},
+ mint:{name:"Mint",sw:"#2FA68C",
+  light:{accent:"#2FA68C","accent-hover":"#268F78","accent-subtle":"#E2F5EF",focus:"#2FA68C","bg-selected":"#DBF2EA","bg-canvas":"#F2FAF7","bg-sunken":"#ECF6F2",border:"#E0EFE9","border-strong":"#CBE4DA","accent-grad":"linear-gradient(120deg,#3EBDA1,#268F78)"},
+  dark:{accent:"#5CC9B8","accent-hover":"#7CD8C9","accent-subtle":"#1B3530",focus:"#5CC9B8","bg-selected":"#234A42","bg-canvas":"#121F1C","bg-sunken":"#152622",border:"#25403A","border-strong":"#345A51","accent-grad":"linear-gradient(120deg,#3EBDA1,#268F78)"}},
+ coral:{name:"Coral",sw:"#E07856",
+  light:{accent:"#D96B48","accent-hover":"#C55A38","accent-subtle":"#FBEDE7",focus:"#D96B48","bg-selected":"#F9E4DB","bg-canvas":"#FBF6F3","bg-sunken":"#F8F0EB",border:"#F2E5DD","border-strong":"#E8D3C6","accent-grad":"linear-gradient(120deg,#E88A64,#C55A38)"},
+  dark:{accent:"#EDA184","accent-hover":"#F2B69F","accent-subtle":"#3A251C",focus:"#EDA184","bg-selected":"#4E3226","bg-canvas":"#211713","bg-sunken":"#281C16",border:"#3E2B21","border-strong":"#573C2E","accent-grad":"linear-gradient(120deg,#E88A64,#C55A38)"}},
+ rose:{name:"Rose",sw:"#C9679E",
+  light:{accent:"#C9679E","accent-hover":"#B4548A","accent-subtle":"#F9EAF3",focus:"#C9679E","bg-selected":"#F6E1ED","bg-canvas":"#FBF5F9","bg-sunken":"#F7EEF4",border:"#F0E1EA","border-strong":"#E4CBDA","accent-grad":"linear-gradient(120deg,#D77FB2,#B4548A)"},
+  dark:{accent:"#E393BE","accent-hover":"#EBACCD","accent-subtle":"#3A2231",focus:"#E393BE","bg-selected":"#4E2E42","bg-canvas":"#211621","bg-sunken":"#281B27",border:"#3E2938","border-strong":"#57394E","accent-grad":"linear-gradient(120deg,#D77FB2,#B4548A)"}},
+ graphite:{name:"Graphite (default)",sw:"#5B6B8C",
+  light:{accent:"#5B6B8C","accent-hover":"#4A5876","accent-subtle":"#ECEFF5",focus:"#5B6B8C","bg-selected":"#E4E9F1","bg-canvas":"#F5F6F9","bg-sunken":"#F0F2F6",border:"#E6E9F0","border-strong":"#D3D9E4","accent-grad":"linear-gradient(120deg,#7284A8,#4A5876)"},
+  dark:{accent:"#93A5C8","accent-hover":"#ACBBD8","accent-subtle":"#242B3A",focus:"#93A5C8","bg-selected":"#323C50","bg-canvas":"#14181F","bg-sunken":"#181D26",border:"#28303F","border-strong":"#3A4558","accent-grad":"linear-gradient(120deg,#7284A8,#4A5876)"}}
+};
+let curPal="graphite";
+function applyPalette(){const mode=document.documentElement.dataset.theme==="dark"?"dark":"light";
+ const v=PALETTES[curPal][mode];const r=document.documentElement.style;
+ for(const[k,val]of Object.entries(v))r.setProperty("--"+k,val);
+ renderPal();if(route==="dash")setTimeout(renderCharts,30)}
+function setPal(k){curPal=k;applyPalette();toast("Palette: "+PALETTES[k].name+" — in the real product this is the tenant BrandingProfile (token layer)")}
+function renderPal(){const b=document.getElementById("pal-body");if(!b)return;
+ b.innerHTML=`<div class="note" style="margin:4px 0 10px">Live palette variations — repoints the <b>semantic accent tokens</b> (the white-label BrandingProfile mechanism). Data-viz series colors stay on the validated chart palette; status colors (ok/warn/error) are reserved and never change.</div>
+ ${Object.entries(PALETTES).map(([k,p])=>`
+ <div class="ntf" style="display:flex;align-items:center;gap:12px;cursor:pointer;${k===curPal?'border-color:var(--accent);border-width:2px':''}" onclick="setPal('${k}')">
+  <span style="width:34px;height:34px;border-radius:10px;background:${p.light["accent-grad"]};flex:none;box-shadow:var(--shadow1)"></span>
+  <div style="flex:1"><div class="nt">${p.name}</div><div class="nd">accent ${p.sw} · light + dark variants</div></div>
+  ${k===curPal?'<span class="pill ok">active</span>':''}
+ </div>`).join("")}
+ <div class="ntf" style="margin-top:10px"><div class="nt">Theme mode</div><div style="display:flex;gap:8px;margin-top:8px">
+ <button class="btn sm ${document.documentElement.dataset.theme==='light'?'pri':''}" onclick="if(document.documentElement.dataset.theme!=='light')toggleTheme();applyPalette()">☀ Light (default)</button>
+ <button class="btn sm ${document.documentElement.dataset.theme==='dark'?'pri':''}" onclick="if(document.documentElement.dataset.theme!=='dark')toggleTheme();applyPalette()">🌙 Dark</button></div></div>
+ <div class="ntf"><div class="nt">Typography</div><div class="nd" style="margin-top:4px">Poppins · 400 / 500 / <b>600 semi-bold</b> (no bold anywhere)</div></div>`}
+/* re-apply palette on theme toggle */
+const _tt=toggleTheme; toggleTheme=function(){_tt();applyPalette()};
+renderPal();
+</script>
+<script>
+/* =================== PALETTE v3: light options + white canvas =================== */
+Object.assign(PALETTES,{
+ sky:{name:"Sky (light)",sw:"#8CC0EE",
+  light:{accent:"#8CC0EE","accent-hover":"#6FAFE3","accent-subtle":"#EDF5FC",focus:"#5B9BD4","bg-selected":"#E4F0FA","bg-canvas":"#F4F9FD","bg-sunken":"#EFF6FC",border:"#E2EEF8","border-strong":"#CDE2F3","accent-grad":"linear-gradient(120deg,#A5D0F4,#79B4E6)","accent-fg":"#123A5C"},
+  dark:{accent:"#8CC0EE","accent-hover":"#A9D1F4","accent-subtle":"#1C2C3D",focus:"#8CC0EE","bg-selected":"#25455F","bg-canvas":"#101B26","bg-sunken":"#13212E",border:"#22364A","border-strong":"#2F4A63","accent-grad":"linear-gradient(120deg,#A5D0F4,#79B4E6)","accent-fg":"#0E2438"}},
+ lilac:{name:"Lilac (light)",sw:"#B9A6E8",
+  light:{accent:"#B9A6E8","accent-hover":"#A68FDE","accent-subtle":"#F4F0FC",focus:"#8E75D1","bg-selected":"#EEE8FA","bg-canvas":"#FAF8FE","bg-sunken":"#F5F2FC",border:"#ECE6F8","border-strong":"#DDD2F0","accent-grad":"linear-gradient(120deg,#C9BAF0,#A68FDE)","accent-fg":"#33235C"},
+  dark:{accent:"#C3B2EC","accent-hover":"#D4C7F2","accent-subtle":"#2A2344",focus:"#C3B2EC","bg-selected":"#3C3260","bg-canvas":"#171329","bg-sunken":"#1B1730",border:"#2D2649","border-strong":"#403766","accent-grad":"linear-gradient(120deg,#C9BAF0,#A68FDE)","accent-fg":"#221743"}},
+ aqua:{name:"Aqua (light)",sw:"#7ECBD6",
+  light:{accent:"#7ECBD6","accent-hover":"#5FBAC8","accent-subtle":"#ECF8FA",focus:"#3D9EAD","bg-selected":"#E1F3F6","bg-canvas":"#F3FBFC","bg-sunken":"#EDF7F9",border:"#DFF1F4","border-strong":"#C6E6EB","accent-grad":"linear-gradient(120deg,#98D8E1,#66BECB)","accent-fg":"#0F3A42"},
+  dark:{accent:"#8ED4DE","accent-hover":"#ABE0E8","accent-subtle":"#16333A",focus:"#8ED4DE","bg-selected":"#1F4A54","bg-canvas":"#0E1F23","bg-sunken":"#11262B",border:"#1E3B43","border-strong":"#2A525C","accent-grad":"linear-gradient(120deg,#98D8E1,#66BECB)","accent-fg":"#0A2A30"}},
+ sage:{name:"Sage (light)",sw:"#A3C9A8",
+  light:{accent:"#A3C9A8","accent-hover":"#8BBA92","accent-subtle":"#F0F7F1",focus:"#5F9468","bg-selected":"#E7F2E9","bg-canvas":"#F6FBF7","bg-sunken":"#F0F7F1",border:"#E3F0E5","border-strong":"#CDE3D1","accent-grad":"linear-gradient(120deg,#B7D6BB,#8BBA92)","accent-fg":"#1E3D24"},
+  dark:{accent:"#A9CFAF","accent-hover":"#C0DDC5","accent-subtle":"#1C2F1F",focus:"#A9CFAF","bg-selected":"#2A4730","bg-canvas":"#121D14","bg-sunken":"#152418",border:"#233828","border-strong":"#325039","accent-grad":"linear-gradient(120deg,#B7D6BB,#8BBA92)","accent-fg":"#142B19"}},
+ butter:{name:"Butter (light)",sw:"#E8CE7A",
+  light:{accent:"#E8CE7A","accent-hover":"#DEBE58","accent-subtle":"#FBF6E4",focus:"#B08F27","bg-selected":"#F8F0D8","bg-canvas":"#FDFBF3","bg-sunken":"#F9F5E7",border:"#F2EAD2","border-strong":"#E8DBB4","accent-grad":"linear-gradient(120deg,#F0DC94,#DEBE58)","accent-fg":"#4A3A08"},
+  dark:{accent:"#E9D183","accent-hover":"#F0DEA2","accent-subtle":"#332B12",focus:"#E9D183","bg-selected":"#4A3F1D","bg-canvas":"#1E1A0E","bg-sunken":"#252012",border:"#3A321A","border-strong":"#524727","accent-grad":"linear-gradient(120deg,#F0DC94,#DEBE58)","accent-fg":"#332905"}},
+ blush:{name:"Blush (light)",sw:"#F0B3C5",
+  light:{accent:"#F0B3C5","accent-hover":"#E698B1","accent-subtle":"#FCF0F4",focus:"#C9678C","bg-selected":"#FAE6ED","bg-canvas":"#FEF8FA","bg-sunken":"#FAF1F4",border:"#F6E4EA","border-strong":"#EDD0DA","accent-grad":"linear-gradient(120deg,#F5C6D4,#E698B1)","accent-fg":"#571F35"},
+  dark:{accent:"#F0B9CA","accent-hover":"#F5CDDA","accent-subtle":"#3A2230",focus:"#F0B9CA","bg-selected":"#54303F","bg-canvas":"#211318","bg-sunken":"#28181E",border:"#3E2530","border-strong":"#583545","accent-grad":"linear-gradient(120deg,#F5C6D4,#E698B1)","accent-fg":"#421426"}}
+});
+let canvasMode="white";
+applyPalette=function(){const mode=document.documentElement.dataset.theme==="dark"?"dark":"light";
+ const v=PALETTES[curPal][mode];const r=document.documentElement.style;
+ for(const[k,val]of Object.entries(v))if(k!=="accent-fg")r.setProperty("--"+k,val);
+ r.setProperty("--accent-fg",v["accent-fg"]||"#fff");
+ if(mode==="light"&&canvasMode==="white"){r.setProperty("--bg-canvas","#FFFFFF");r.setProperty("--bg-sunken",v["bg-sunken"])}
+ renderPal();if(route==="dash")setTimeout(renderCharts,30)};
+function setCanvas(m){canvasMode=m;applyPalette();toast("Canvas: "+(m==="white"?"White (primary background)":"Soft tint"))}
+renderPal=function(){const b=document.getElementById("pal-body");if(!b)return;
+ b.innerHTML=`<div class="note" style="margin:4px 0 10px">Live variations of the <b>semantic accent tokens</b> (= tenant BrandingProfile). Chart series + status colors stay validated & reserved. Light accents automatically use dark text for contrast.</div>
+ <div class="ntf"><div class="nt">Primary background (canvas)</div><div style="display:flex;gap:8px;margin-top:8px">
+ <button class="btn sm ${canvasMode==='white'?'pri':''}" onclick="setCanvas('white')">⬜ White (default)</button>
+ <button class="btn sm ${canvasMode==='tint'?'pri':''}" onclick="setCanvas('tint')">🎨 Soft tint</button></div></div>
+ <div class="nav-h" style="padding:10px 4px 4px">Standard pastels</div>
+ ${["graphite","ocean","mint","coral","rose"].map(k=>palRow(k)).join("")}
+ <div class="nav-h" style="padding:10px 4px 4px">Light pastels</div>
+ ${["sky","lilac","aqua","sage","butter","blush"].map(k=>palRow(k)).join("")}
+ <div class="ntf" style="margin-top:10px"><div class="nt">Theme mode</div><div style="display:flex;gap:8px;margin-top:8px">
+ <button class="btn sm ${document.documentElement.dataset.theme==='light'?'pri':''}" onclick="if(document.documentElement.dataset.theme!=='light')toggleTheme();else applyPalette()">☀ Light (default)</button>
+ <button class="btn sm ${document.documentElement.dataset.theme==='dark'?'pri':''}" onclick="if(document.documentElement.dataset.theme!=='dark')toggleTheme();else applyPalette()">🌙 Dark</button></div></div>
+ <div class="ntf"><div class="nt">Typography</div><div class="nd" style="margin-top:4px">Poppins · 400 / 500 / <b>600 semi-bold</b> (no bold anywhere)</div></div>`};
+function palRow(k){const p=PALETTES[k];return `
+ <div class="ntf" style="display:flex;align-items:center;gap:12px;cursor:pointer;${k===curPal?'border-color:var(--accent);border-width:2px':''}" onclick="setPal('${k}')">
+  <span style="width:34px;height:34px;border-radius:10px;background:${p.light["accent-grad"]};flex:none;box-shadow:var(--shadow1)"></span>
+  <div style="flex:1"><div class="nt">${p.name}</div><div class="nd">accent ${p.sw}${p.light["accent-fg"]&&p.light["accent-fg"]!=="#fff"?" · dark-on-light text":""}</div></div>
+  ${k===curPal?'<span class="pill ok">active</span>':''}</div>`}
+applyPalette();
+</script>
+ 
+<script>
+/* ============ V4: IA restructure · unified Cases · cross-case work queues w/ client context ============ */
+/* --- extra seed: multi-client portfolio --- */
+S.clients=[
+ {acct:"Northwind Global Holdings",ents:["Northwind Technologies Inc.","Northwind Labs UK Ltd"]},
+ {acct:"Aurora Pictures Group",ents:["Aurora Pictures LLC","Aurora TV I LLC"]},
+ {acct:"Meridian Screen Holdings",ents:["Meridian Screen NY LLC"]},
+ {acct:"Helix Biosciences",ents:["Helix Bio Inc.","Helix Devices LLC"]},
+ {acct:"Crescent Films Group",ents:["Crescent Films LA LLC"]}];
+S.casesAll=[
+ {id:"RND-2025-0142",dom:"rnd",acct:"Northwind Global Holdings",ent:"Northwind Technologies Inc.",fy:"FY2025",status:"Technical Review",pill:"warn",filings:"Fed + CA + NY",credit:"$3,382,600",ready:78,owner:"John Doe",go:"go('rnd')"},
+ {id:"RND-2025-0151",dom:"rnd",acct:"Northwind Global Holdings",ent:"Northwind Labs UK Ltd",fy:"FY2025",status:"Data Load",pill:"n",filings:"UK merged",credit:"$830,000",ready:31,owner:"Wei Chen",go:"toast('Case workspace — UK cartridge')"},
+ {id:"RND-2026-0188",dom:"rnd",acct:"Helix Biosciences",ent:"Helix Bio Inc.",fy:"FY2026",status:"Assessment",pill:"info",filings:"Fed + MA",credit:"$1,940,000",ready:52,owner:"John Doe",go:"toast('Case workspace — Helix Bio')"},
+ {id:"RND-2026-0190",dom:"rnd",acct:"Helix Biosciences",ent:"Helix Devices LLC",fy:"FY2026",status:"Interactions",pill:"info",filings:"Fed",credit:"$610,000",ready:44,owner:"Sofia Rossi",go:"toast('Case workspace — Helix Devices')"},
+ {id:"RND-2024-0117",dom:"rnd",acct:"Northwind Global Holdings",ent:"Northwind Technologies Inc.",fy:"FY2024",status:"Closed · Approved",pill:"ok",filings:"Fed + CA",credit:"$2,871,400",ready:100,owner:"John Doe",go:"toast('Closed case — read-only + outcome recorded')"},
+ {id:"FLM-2025-0198",dom:"film",acct:"Aurora Pictures Group",ent:"Aurora Pictures LLC",fy:"FY2025",status:"CPA Attestation",pill:"warn",filings:"GA + NY",credit:"$6,940,000",ready:84,owner:"John Doe",go:"go('film')"},
+ {id:"FLM-2026-0031",dom:"film",acct:"Meridian Screen Holdings",ent:"Meridian Screen NY LLC",fy:"FY2026",status:"Production",pill:"info",filings:"NY",credit:"$6,420,000",ready:68,owner:"Wei Chen",go:"toast('Film case — Empire of Glass')"},
+ {id:"FLM-2026-0007",dom:"film",acct:"Crescent Films Group",ent:"Crescent Films LA LLC",fy:"FY2026",status:"Certified · electing",pill:"ok",filings:"LA",credit:"$2,900,000",ready:92,owner:"Sofia Rossi",go:"toast('Film case — Bayou Nights')"},
+ {id:"FLM-2025-0102",dom:"film",acct:"Aurora Pictures Group",ent:"Aurora TV I LLC",fy:"FY2025",status:"Closed · monetized",pill:"ok",filings:"GA",credit:"$12,400,000",ready:100,owner:"Sofia Rossi",go:"toast('Closed film case — transfer settled')"}];
+const CTX=(a,e,c,f)=>`<td>${a}</td><td>${e}</td><td class="link">${c}</td><td>${f}</td>`;
+S.qAssess=[
+ ["Northwind Global Holdings","Northwind Technologies Inc.","RND-2025-0142","FY2025","QRE Assessor — Edge CDN 76%→81%","conf 0.83","1d","rnd"],
+ ["Northwind Global Holdings","Northwind Technologies Inc.","RND-2025-0142","FY2025","Follow-up interaction — Atlas (round 2)","gap: uncertainty","2h","rnd"],
+ ["Helix Biosciences","Helix Bio Inc.","RND-2026-0188","FY2026","QRE Assessor — Assay Automation 68%→74%","conf 0.79","3h","rnd"],
+ ["Helix Biosciences","Helix Devices LLC","RND-2026-0190","FY2026","Technical summary v2 draft (regenerated)","post-response","5h","rnd"],
+ ["Aurora Pictures Group","Aurora Pictures LLC","FLM-2025-0198","FY2025","Credit Assessor — post-production 100%→96%","conf 0.81","1d","film"],
+ ["Meridian Screen Holdings","Meridian Screen NY LLC","FLM-2026-0031","FY2026","Credit Assessor — NY vendor spend 92%","conf 0.77","2d","film"]];
+S.qCost=[
+ ["Northwind Global Holdings","Northwind Technologies Inc.","RND-2025-0142","FY2025","DataCraft Consulting — INV-2231","Contract research","$92,500","0.86","review"],
+ ["Northwind Global Holdings","Northwind Technologies Inc.","RND-2025-0142","FY2025","Recruiting fees — ML roles","Excluded?","$44,000","0.78","review"],
+ ["Helix Biosciences","Helix Bio Inc.","RND-2026-0188","FY2026","CRO services — Q1 batch","Contract research","$310,000","0.71","review"],
+ ["Helix Biosciences","Helix Bio Inc.","RND-2026-0188","FY2026","Lab consumables (bulk PO)","Supplies","$128,400","0.93","mapped"],
+ ["Aurora Pictures Group","Aurora Pictures LLC","FLM-2025-0198","FY2025","QuickShip Rentals (drop-ship)","Vendor — pass-through?","$212,000","0.55","review"],
+ ["Meridian Screen Holdings","Meridian Screen NY LLC","FLM-2026-0031","FY2026","Out-of-state unit costs","Excluded (non-NY)","$2,800,000","0.97","excluded"]];
+S.qEvid=[
+ ["Northwind Global Holdings","Northwind Technologies Inc.","RND-2025-0142","FY2025","Prior-year QRE support (2022)","partial","blocks finalization","critical"],
+ ["Northwind Global Holdings","Northwind Technologies Inc.","RND-2025-0142","FY2025","Time allocation basis — 4 resources","partial","reconstructed only","recommended"],
+ ["Aurora Pictures Group","Aurora Pictures LLC","FLM-2025-0198","FY2025","CPA AUP report","pending","GATE — blocks certification","critical"],
+ ["Aurora Pictures Group","Aurora Pictures LLC","FLM-2025-0198","FY2025","Logo placement confirmation (DECD)","partial","uplift at risk","critical"],
+ ["Meridian Screen Holdings","Meridian Screen NY LLC","FLM-2026-0031","FY2026","Residency certs — unit 2 (7 of 38)","partial","due Aug 12","critical"],
+ ["Helix Biosciences","Helix Devices LLC","RND-2026-0190","FY2026","Contemporaneous experimentation records","partial","readiness 44%","recommended"]];
+S.qInter=[
+ ["Northwind Global Holdings","Northwind Technologies Inc.","RND-2025-0142","FY2025","Atlas — Jenna Ortiz","In progress 6/9","follow-up queued","2h"],
+ ["Northwind Global Holdings","Northwind Technologies Inc.","RND-2025-0142","FY2025","Quantum-Safe — Ahmed Farouk","Sent 0/7","no response 4d","4d"],
+ ["Helix Biosciences","Helix Bio Inc.","RND-2026-0188","FY2026","Assay Automation — Dr. Reeve","Completed 8/8","ready to review","1d"],
+ ["Aurora Pictures Group","Aurora Pictures LLC","FLM-2025-0198","FY2025","Production accountant — spend detail","Completed 9/9","mapped","3d"],
+ ["Meridian Screen Holdings","Meridian Screen NY LLC","FLM-2026-0031","FY2026","Line producer — NY day counts","Generated (unsent)","awaiting send","—"]];
+S.qTasks=[
+ ["Aurora Pictures Group","Aurora Pictures LLC","FLM-2025-0198","FY2025","CPA signature follow-up","Aug 12","err","Sofia Rossi"],
+ ["Meridian Screen Holdings","Meridian Screen NY LLC","FLM-2026-0031","FY2026","Unit-2 schedule decision (75% test)","This week","err","Wei Chen"],
+ ["Northwind Global Holdings","Northwind Technologies Inc.","RND-2025-0142","FY2025","Resolve judgment gate — Atlas","Aug 14","warn","Wei Chen"],
+ ["Northwind Global Holdings","Northwind Technologies Inc.","RND-2025-0142","FY2025","Deep-dive interview — Helios team","Aug 13","n","Wei Chen"],
+ ["Helix Biosciences","Helix Bio Inc.","RND-2026-0188","FY2026","Bulk interactions — wave 1","Aug 15","n","John Doe"],
+ ["Crescent Films Group","Crescent Films LA LLC","FLM-2026-0007","FY2026","Confirm 91¢ bid firmness","Sep 01","warn","Sofia Rossi"]];
+/* --- restructured NAV --- */
+NAV.length=0;
+NAV.push(
+ {h:"",items:[["home","home","Home / Work Queue"]]},
+ {h:"Clients",items:[["accounts","building","Accounts"],["entities","landmark","Legal Entities"],["contacts","user","Contacts"]]},
+ {h:"Cases",items:[["casesAll","briefcase","All Cases"]]},
+ {h:"My Work (cross-case)",items:[["qAssess","activity","Assessment Review"],["costq","filetext","Cost & Qualification"],["vault","folder","Evidence & Readiness"],["qInter","users","Interactions"],["qTasks","gauge","Tasks"]]},
+ {h:"Insights",items:[["dash","chart","Dashboards"]]},
+ {h:"Data",items:[["import","download","Import & Bulk Ops"],["jobsview","layers","Background Jobs"]]},
+ {h:"Admin",items:[["settingsHub","settings","Settings"],["admin","shield","Security & Access"],["licensing","key","Licensing & Usage"],["ops","monitor","Monitors (OCC)"],["studio","scale","Authoring Studio"]]});
+/* --- shared context filter bar (client-aware) --- */
+let ctxAcct="All accounts", ctxDom="all";
+function ctxFilters(showDomain){return `<div class="lc">
+ ${showDomain?`<div class="seg" style="margin-right:6px">
+  <button class="${ctxDom==='all'?'on':''}" onclick="ctxDom='all';render()">All domains</button>
+  <button class="${ctxDom==='rnd'?'on':''}" onclick="ctxDom='rnd';render()">R&D Credits</button>
+  <button class="${ctxDom==='film'?'on':''}" onclick="ctxDom='film';render()">Film & Media</button></div>`:''}
+ <select class="cxs" onchange="ctxAcct=this.value;render()">${["All accounts",...S.clients.map(c=>c.acct)].map(a=>`<option ${a===ctxAcct?'selected':''}>${a}</option>`).join("")}</select>
+ <select class="cxs"><option>All legal entities</option>${S.clients.flatMap(c=>c.ents).map(e=>`<option>${e}</option>`).join("")}</select>
+ <select class="cxs"><option>All fiscal years</option><option>FY2026</option><option>FY2025</option><option>FY2024</option></select>
+ <span class="sp"></span><input placeholder="Search…"><button class="chip">Filter</button><button class="chip">Sort</button><button class="chip">Columns</button><button class="chip">Views ▾</button>
+ <button class="chip" onclick="toast('Export honors current filters, sort & visible columns → CSV · XLSX · PDF')">Export</button></div>`}
+function ctxMatch(acct,dom){return (ctxAcct==="All accounts"||acct===ctxAcct)&&(!dom||ctxDom==="all"||dom===ctxDom)}
+const V4={
+ casesAll:()=>{const rows=S.casesAll.filter(c=>ctxMatch(c.acct,c.dom));return `
+ <div class="pane-h"><div class="ph-row"><div class="ph-title">${ic("briefcase",20)} All Cases</div><span class="pill n">${rows.length} of ${S.casesAll.length}</span><span style="flex:1"></span><button class="btn pri" onclick="toast('New case wizard: client → entity → FY → domain → scope election → team')">${ic("plus",14)} New case</button></div>
+ ${ctxFilters(true)}</div>
+ <div class="body-scroll"><table class="lv"><thead><tr><th>Case</th><th>Account</th><th>Legal entity</th><th>FY</th><th>Domain</th><th>Status</th><th>Filings</th><th class="num">Est. credit</th><th>Readiness</th><th>Owner</th></tr></thead><tbody>
+ ${rows.map(c=>`<tr onclick="${c.go}"><td class="link">${c.id}</td><td>${c.acct}</td><td>${c.ent}</td><td>${c.fy}</td><td><span class="pill ${c.dom==='rnd'?'info':'n'}">${c.dom==='rnd'?'R&D':'Film & Media'}</span></td><td><span class="pill ${c.pill}">${c.status}</span></td><td style="font-size:11.5px">${c.filings}</td><td class="num">${c.credit}</td><td><div class="readiness" style="width:110px"><div class="rbar"><i style="width:${c.ready}%;background:var(--${c.ready>80?'ok':c.ready>50?'warn':'err'})"></i></div>${c.ready}%</div></td><td>${c.owner}</td></tr>`).join("")}
+ </tbody></table>
+ <div class="note">One case list across the whole book of business — toggle domain, filter by client. Every consultant-firm list carries <b>Account · Legal entity · FY</b> so a multi-client portfolio stays navigable.</div></div>`},
+ qAssess:()=>{const rows=S.qAssess.filter(r=>ctxMatch(r[0],r[7]));return `
+ <div class="pane-h"><div class="ph-row"><div class="ph-title">${ic("activity",20)} Assessment Review</div><span class="pill info">${rows.length} awaiting my review</span><span style="flex:1"></span><button class="btn" onclick="toast('Bulk accept above confidence threshold — each still writes an audited adjustment')">Bulk review…</button></div>
+ ${ctxFilters(true)}</div>
+ <div class="body-scroll"><table class="lv"><thead><tr><th>Account</th><th>Legal entity</th><th>Case</th><th>FY</th><th>Item</th><th>Basis</th><th>Waiting</th><th></th></tr></thead><tbody>
+ ${rows.map(r=>`<tr onclick="go('${r[7]}')">${CTX(r[0],r[1],r[2],r[3])}<td><b>${r[4]}</b></td><td><span class="pill info">${r[5]}</span></td><td>${r[6]}</td><td><button class="btn sm">Review</button></td></tr>`).join("")}
+ </tbody></table><div class="note">Cross-case AI proposal queue (QRE%/spend%, summaries, follow-ups). The canonical home of each item is its case — this is the consultant's work view over them.</div></div>`},
+ costq:()=>{const rows=S.qCost.filter(r=>ctxMatch(r[0],null));return `
+ <div class="pane-h"><div class="ph-row"><div class="ph-title">${ic("filetext",20)} Cost & Qualification — review queue</div><span class="pill warn">${rows.filter(r=>r[8]==='review').length} need review</span><span style="flex:1"></span><button class="btn" onclick="toast('Side-by-side source view with jump-link to the originating document')">Source view</button></div>
+ ${ctxFilters(false)}
+ <div class="lc" style="padding-top:0"><span class="chip on">Review queue</span><span class="chip">Auto-mapped</span><span class="chip">Excluded</span><span class="chip">All lines</span></div></div>
+ <div class="body-scroll"><table class="lv"><thead><tr><th>Account</th><th>Legal entity</th><th>Case</th><th>FY</th><th>Cost line</th><th>Proposed category</th><th class="num">Amount</th><th>Conf.</th><th>Status</th></tr></thead><tbody>
+ ${rows.map(r=>`<tr>${CTX(r[0],r[1],r[2],r[3])}<td>${r[4]}</td><td><b>${r[5]}</b></td><td class="num">${r[6]}</td><td>${r[7]}</td><td>${r[8]==='review'?pill('partial'):r[8]==='mapped'?pill('satisfied'):pill('fail')}</td></tr>`).join("")}
+ </tbody></table><div class="note">Costs live under their case; this queue exists so a consultant can clear low-confidence mappings across every client in one pass. Confirmed decisions feed tenant mapping memory.</div></div>`},
+ vault:()=>{const rows=S.qEvid.filter(r=>ctxMatch(r[0],null));return `
+ <div class="pane-h"><div class="ph-row"><div class="ph-title">${ic("folder",20)} Evidence & Readiness — gap queue</div><span class="pill err">${rows.filter(r=>r[7]==='critical').length} critical</span><span style="flex:1"></span><button class="btn" onclick="toast('Chase pack: request letters generated per client contact')">Chase outstanding…</button></div>
+ ${ctxFilters(false)}
+ <div class="lc" style="padding-top:0"><span class="chip on">Open gaps</span><span class="chip">Critical only</span><span class="chip">Reconstructed</span><span class="chip">Full vault (312)</span></div></div>
+ <div class="body-scroll"><table class="lv"><thead><tr><th>Account</th><th>Legal entity</th><th>Case</th><th>FY</th><th>Requirement</th><th>Status</th><th>Impact</th><th>Criticality</th></tr></thead><tbody>
+ ${rows.map(r=>`<tr>${CTX(r[0],r[1],r[2],r[3])}<td>${r[4]}</td><td>${pill(r[5])}</td><td style="font-size:11.5px">${r[6]}</td><td><span class="pill ${r[7]==='critical'?'err':'n'}">${r[7]}</span></td></tr>`).join("")}
+ </tbody></table><div class="note">Evidence is stored per case (one vault, region-pinned). This is the readiness gap queue: what's blocking finalization, across the book — critical unsatisfied requirements block filing.</div></div>`},
+ qInter:()=>{const rows=S.qInter.filter(r=>ctxMatch(r[0],null));return `
+ <div class="pane-h"><div class="ph-row"><div class="ph-title">${ic("users",20)} Interactions — cross-case</div><span style="flex:1"></span><button class="btn pri" onclick="toast('Campaign builder: select subjects → generate → review → send (separate permissions)')">${ic("plus",14)} New campaign</button></div>
+ ${ctxFilters(false)}</div>
+ <div class="body-scroll"><table class="lv"><thead><tr><th>Account</th><th>Legal entity</th><th>Case</th><th>FY</th><th>Interaction · PoC</th><th>Progress</th><th>Next action</th><th>Age</th></tr></thead><tbody>
+ ${rows.map(r=>`<tr>${CTX(r[0],r[1],r[2],r[3])}<td>${r[4]}</td><td>${r[5]}</td><td><span class="pill ${r[6].includes('await')||r[6].includes('no response')?'warn':'n'}">${r[6]}</span></td><td>${r[7]}</td></tr>`).join("")}
+ </tbody></table><div class="note">Respondents authenticate by OTP; generate and send are separate permissions; responses event-drive artifact regeneration in the owning case.</div></div>`},
+ qTasks:()=>{const rows=S.qTasks.filter(r=>ctxMatch(r[0],null));return `
+ <div class="pane-h"><div class="ph-row"><div class="ph-title">${ic("gauge",20)} Tasks — cross-case</div><span style="flex:1"></span><div class="seg"><button class="on">List</button><button onclick="toast('Kanban view groups by phase across cases')">Kanban</button></div></div>
+ ${ctxFilters(false)}</div>
+ <div class="body-scroll"><table class="lv"><thead><tr><th>Account</th><th>Legal entity</th><th>Case</th><th>FY</th><th>Task</th><th>Due</th><th>Assignee</th></tr></thead><tbody>
+ ${rows.map(r=>`<tr>${CTX(r[0],r[1],r[2],r[3])}<td>${r[4]}</td><td><span class="pill ${r[6]}">${r[5]}</span></td><td>${r[7]}</td></tr>`).join("")}
+ </tbody></table><div class="note">Playbook-materialized + ad-hoc tasks across every case, with client context. Assignment rules route by profile · role · territory.</div></div>`},
+ settingsHub:()=>`
+ <div class="pane-h"><div class="ph-row"><div class="ph-title">${ic("settings",20)} Settings</div><span class="pill n">business configuration · effective-dated</span></div></div>
+ <div class="body-scroll"><div class="grid3">
+ ${[["Tenant defaults","Currency, roll-up method, locale, follow-up policy","settings"],["Fiscal years","Per legal entity, overlap-validated, future-dating","landmark"],["Weightage & roll-up","QRE weightage curves; simple vs cost-weighted","gauge"],["Notification preferences","Channels, digests, quiet hours; push/SMS consent","bell"],["Task playbooks","Per domain + jurisdiction; dependency DAG; assignment rules","layers"],["Templates","Message templates with mail-merge; document templates","filetext"]].map(c=>`
+ <div class="card" style="cursor:pointer" onclick="toast('${c[0]} — effective-dated editor with inheritance badges')"><div class="card-b"><div style="color:var(--accent);margin-bottom:6px">${ic(c[2],20)}</div><div style="font-weight:600;margin-bottom:3px">${c[0]}</div><div style="font-size:11.5px;color:var(--text-secondary)">${c[1]}</div></div></div>`).join("")}
+ </div><div class="note">Scope hierarchy: Tenant → Account → Legal entity → Case → Filing. Nearest scope wins; every value effective-dated; changes never alter filed snapshots.</div></div>`
+};
+const prevRender=render;
+render=function(){ if(V4[route]){renderNav();document.querySelector("#content").innerHTML=V4[route]();renderDrawers();hydrateIcons()} else {prevRender();hydrateIcons()} };
+/* nav/search additions */
+GS.push(["CASE","FLM-2026-0031 · Empire of Glass (NY)","casesAll"],["CASE","RND-2026-0188 · Helix Bio FY2026","casesAll"],["QUEUE","Evidence & Readiness gaps","vault"],["QUEUE","Cost & Qualification review","costq"]);
+render();
+ 
+ 
+hydrateIcons();
+</script>
